@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from sqlalchemy import select
+
 from ckan import model
 
 from ckanext.issues import config as issues_config
@@ -12,11 +14,11 @@ def issues_get_category_options() -> list[dict[str, Any]]:
 
 
 def issues_get_sysadmins() -> list[dict[str, str]]:
-    users = (
-        model.Session.query(model.User)
-        .filter(model.User.sysadmin.is_(True), model.User.state == model.State.ACTIVE)
+    stmt = (
+        select(model.User)
+        .where(model.User.sysadmin.is_(True), model.User.state == model.State.ACTIVE)
         .order_by(model.User.name)
-        .all()
     )
+    users = model.Session.scalars(stmt).all()
 
     return [{"value": u.id, "text": u.fullname or u.name} for u in users]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from sqlalchemy import select
 
 import ckan.model as model
 import ckan.plugins.toolkit as tk
@@ -219,8 +220,8 @@ class TestTicketCreationAndModal:
         )
 
         assert resp.status_code == 200
-        count = model.Session.query(Ticket).filter(Ticket.author_id == user["id"]).count()
-        assert count == 1
+        tickets = model.Session.scalars(select(Ticket).where(Ticket.author_id == user["id"])).all()
+        assert len(tickets) == 1
 
     def test_init_modal_requires_authentication(self, app):
         resp = app.get(tk.url_for("issues.init_modal"))

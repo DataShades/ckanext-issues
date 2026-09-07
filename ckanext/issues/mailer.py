@@ -1,6 +1,8 @@
 import logging
 from typing import Any
 
+from sqlalchemy import select
+
 import ckan.plugins.toolkit as tk
 from ckan import model
 from ckan.lib import mailer
@@ -121,14 +123,13 @@ def notify_author_on_ticket_update(sender: None, **kwargs: Any) -> None:
 
 
 def _get_sysadmin_users() -> list[model.User]:
-    """Return all active sysadmin users."""
-    return (
-        model.Session.query(model.User)
-        .filter(model.User.sysadmin.is_(True))
-        .filter(model.User.state == model.State.ACTIVE)
-        .filter(model.User.email.isnot(None))
-        .all()
+    """Return all active sysadmin users that have an email address."""
+    stmt = select(model.User).where(
+        model.User.sysadmin.is_(True),
+        model.User.state == model.State.ACTIVE,
+        model.User.email.isnot(None),
     )
+    return list(model.Session.scalars(stmt).all())
 
 
 def _render_new_ticket(ticket: DictizedTicket, recipient_name: str) -> str:

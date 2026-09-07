@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text
 from sqlalchemy.orm import backref, relationship
@@ -57,10 +58,8 @@ class Ticket(tk.BaseModel):
         return f"Ticket #{self.id}: {self.subject}"
 
     @classmethod
-    def get(cls, ticket_id: str) -> Self | None:
-        query = model.Session.query(cls).filter(cls.id == ticket_id)
-
-        return query.one_or_none()
+    def get(cls, ticket_id: Any) -> Self | None:
+        return model.Session.get(cls, ticket_id) if ticket_id else None
 
     def delete(self) -> None:
         model.Session.delete(self)
@@ -108,9 +107,8 @@ class TicketMessage(tk.BaseModel):
     ticket = relationship("Ticket", back_populates="messages")
 
     @classmethod
-    def get(cls, message_id: int) -> Self | None:
-        query = model.Session.query(cls).filter(cls.id == message_id)
-        return query.one_or_none()
+    def get(cls, message_id: Any) -> Self | None:
+        return model.Session.get(cls, message_id) if message_id else None
 
     @classmethod
     def add(cls, ticket_id: int, author_id: str, content: str) -> Self:
