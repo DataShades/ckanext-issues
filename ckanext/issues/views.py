@@ -248,6 +248,11 @@ issues.add_url_rule(
     view_func=DeleteMessageView.as_view("delete_message"),
     methods=("POST",),
 )
+issues.add_url_rule(
+    "/message/<message_id>/update",
+    view_func=UpdateMessageView.as_view("update_message"),
+    methods=("POST",),
+)
 # issues_admin — sysadmins only
 issues_admin.add_url_rule("/", view_func=GenericTableView.as_view("list", table=SupportTable))
 issues_admin.add_url_rule(
@@ -263,11 +268,5 @@ issues_admin.add_url_rule(
 issues_admin.add_url_rule(
     "/ticket/<ticket_id>/delete",
     view_func=TicketDeleteView.as_view("ticket_delete"),
-    methods=("POST",),
-)
-
-issues_admin.add_url_rule(
-    "/message/<message_id>/update",
-    view_func=UpdateMessageView.as_view("update_message"),
     methods=("POST",),
 )

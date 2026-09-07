@@ -1,0 +1,267 @@
+from __future__ import annotations
+
+import pytest
+
+import ckan.model as model
+import ckan.plugins.toolkit as tk
+from ckan.tests.helpers import call_action
+
+from ckanext.issues.model import Ticket
+
+# Notifications are exercised in the mailer tests; keep them out of the way here.
+pytestmark = [
+    pytest.mark.usefixtures("with_plugins", "clean_db"),
+    pytest.mark.ckan_config("ckanext.issues.notify_on_new_ticket", "false"),
+    pytest.mark.ckan_config("ckanext.issues.notify_on_new_message", "false"),
+    pytest.mark.ckan_config("ckanext.issues.notify_on_ticket_update", "false"),
+]
+
+HX = {"HX-Request": "true"}
+
+
+def _assign(ticket_id, user_id):
+    ticket = Ticket.get(ticket_id)
+    ticket.assignee_id = user_id
+    model.Session.commit()
+
+
+def _add_message(ticket_id, author_id, content="original"):
+    return call_action(
+        "issues_message_create",
+        ticket_id=ticket_id,
+        author_id=author_id,
+        content=content,
+    )
+
+
+def _messages(ticket_id):
+    return call_action("issues_ticket_show", id=ticket_id)["messages"]
+
+
+class TestTicketReadView:
+    def test_author_can_open_the_ticket(self, app, ticket):
+        app.set_session_user(ticket["author"]["id"])
+
+        resp = app.get(tk.url_for("issues.ticket_read", ticket_id=ticket["id"]))
+
+        assert resp.status_code == 200
+        assert f"#{ticket['id']}" in resp.body
+
+    def test_assignee_can_open_the_ticket(self, app, ticket, user):
+        _assign(ticket["id"], user["id"])
+        app.set_session_user(user["id"])
+
+        resp = app.get(tk.url_for("issues.ticket_read", ticket_id=ticket["id"]))
+
+        assert resp.status_code == 200
+
+    def test_unrelated_user_is_forbidden(self, app, ticket, user):
+        app.set_session_user(user["id"])
+
+        resp = app.get(tk.url_for("issues.ticket_read", ticket_id=ticket["id"]))
+
+        assert resp.status_code == 403
+
+    def test_anonymous_is_forbidden(self, app, ticket):
+        resp = app.get(tk.url_for("issues.ticket_read", ticket_id=ticket["id"]))
+
+        assert resp.status_code == 403
+
+    def test_missing_ticket_is_404(self, app, ticket):
+        app.set_session_user(ticket["author"]["id"])
+
+        resp = app.get(tk.url_for("issues.ticket_read", ticket_id=999999))
+
+        assert resp.status_code == 404
+
+
+class TestAddMessageView:
+    def test_author_can_reply(self, app, ticket):
+        app.set_session_user(ticket["author"]["id"])
+
+        resp = app.post(
+            tk.url_for("issues.add_message", ticket_id=ticket["id"]),
+            data={"content": "a reply"},
+        )
+
+        assert resp.status_code == 200
+        assert _messages(ticket["id"])[-1]["content"] == "a reply"
+
+    def test_assignee_can_reply(self, app, ticket, user):
+        _assign(ticket["id"], user["id"])
+        app.set_session_user(user["id"])
+
+        app.post(
+            tk.url_for("issues.add_message", ticket_id=ticket["id"]),
+            data={"content": "staff reply"},
+        )
+
+        assert _messages(ticket["id"])[-1]["content"] == "staff reply"
+
+    def test_unrelated_user_cannot_reply(self, app, ticket, user):
+        app.set_session_user(user["id"])
+
+        app.post(
+            tk.url_for("issues.add_message", ticket_id=ticket["id"]),
+            data={"content": "spam"},
+        )
+
+        assert _messages(ticket["id"]) == []
+
+    def test_cannot_reply_to_a_closed_ticket(self, app, ticket, sysadmin):
+        call_action(
+            "issues_ticket_update",
+            context={"user": sysadmin["name"]},
+            id=ticket["id"],
+            status="closed",
+        )
+        app.set_session_user(ticket["author"]["id"])
+
+        app.post(
+            tk.url_for("issues.add_message", ticket_id=ticket["id"]),
+            data={"content": "too late"},
+        )
+
+        assert _messages(ticket["id"]) == []
+
+
+class TestMessageMutation:
+    def test_author_can_edit_own_message(self, app, ticket):
+        message = _add_message(ticket["id"], ticket["author"]["id"])
+        app.set_session_user(ticket["author"]["id"])
+
+        resp = app.post(
+            tk.url_for("issues.update_message", message_id=message["id"]),
+            data={"content": "edited", "ticket_id": ticket["id"]},
+        )
+
+        assert resp.status_code == 200
+        assert _messages(ticket["id"])[0]["content"] == "edited"
+
+    def test_unrelated_user_cannot_edit_message(self, app, ticket, user):
+        message = _add_message(ticket["id"], ticket["author"]["id"])
+        app.set_session_user(user["id"])
+
+        app.post(
+            tk.url_for("issues.update_message", message_id=message["id"]),
+            data={"content": "hacked", "ticket_id": ticket["id"]},
+        )
+
+        assert _messages(ticket["id"])[0]["content"] == "original"
+
+    def test_author_can_delete_own_message(self, app, ticket):
+        message = _add_message(ticket["id"], ticket["author"]["id"])
+        app.set_session_user(ticket["author"]["id"])
+
+        resp = app.post(tk.url_for("issues.delete_message", message_id=message["id"]))
+
+        assert resp.status_code == 200
+        assert _messages(ticket["id"]) == []
+
+    def test_unrelated_user_cannot_delete_message(self, app, ticket, user):
+        message = _add_message(ticket["id"], ticket["author"]["id"])
+        app.set_session_user(user["id"])
+
+        app.post(tk.url_for("issues.delete_message", message_id=message["id"]))
+
+        assert len(_messages(ticket["id"])) == 1
+
+
+class TestTicketCreationAndModal:
+    def test_authenticated_user_can_create_a_ticket(self, app, user):
+        app.set_session_user(user["id"])
+
+        resp = app.post(
+            tk.url_for("issues.add_ticket"),
+            data={"subject": "Help", "category": "Data request", "text": "please"},
+        )
+
+        assert resp.status_code == 200
+        count = model.Session.query(Ticket).filter(Ticket.author_id == user["id"]).count()
+        assert count == 1
+
+    def test_init_modal_requires_authentication(self, app):
+        resp = app.get(tk.url_for("issues.init_modal"))
+
+        assert resp.status_code == 403
+
+    def test_init_modal_renders_for_authenticated_user(self, app, user):
+        app.set_session_user(user["id"])
+
+        resp = app.get(tk.url_for("issues.init_modal"))
+
+        assert resp.status_code == 200
+
+    def test_my_tickets_page_renders(self, app, ticket):
+        app.set_session_user(ticket["author"]["id"])
+
+        resp = app.get(tk.url_for("issues.my_tickets"))
+
+        assert resp.status_code == 200
+
+
+class TestAdminBlueprint:
+    def test_sysadmin_sees_the_dashboard(self, app, sysadmin):
+        app.set_session_user(sysadmin["id"])
+
+        resp = app.get(tk.url_for("issues_admin.list"))
+
+        assert resp.status_code == 200
+
+    def test_regular_user_is_forbidden(self, app, user):
+        app.set_session_user(user["id"])
+
+        resp = app.get(tk.url_for("issues_admin.list"))
+
+        assert resp.status_code == 403
+
+    def test_anonymous_is_forbidden(self, app):
+        resp = app.get(tk.url_for("issues_admin.list"))
+
+        assert resp.status_code == 403
+
+    def test_sysadmin_can_toggle_status(self, app, ticket, sysadmin):
+        app.set_session_user(sysadmin["id"])
+
+        resp = app.post(
+            tk.url_for("issues_admin.ticket_update_status", ticket_id=ticket["id"]),
+            headers=HX,
+        )
+
+        assert resp.status_code == 200
+        assert call_action("issues_ticket_show", id=ticket["id"])["status"] == "closed"
+
+    def test_sysadmin_can_assign_a_ticket(self, app, ticket, sysadmin, user):
+        app.set_session_user(sysadmin["id"])
+
+        resp = app.post(
+            tk.url_for("issues_admin.ticket_assign", ticket_id=ticket["id"]),
+            data={"assignee_id": user["id"]},
+            headers=HX,
+        )
+
+        assert resp.status_code == 200
+        assert call_action("issues_ticket_show", id=ticket["id"])["assignee"]["id"] == user["id"]
+
+    def test_regular_user_cannot_toggle_status(self, app, ticket, user):
+        app.set_session_user(user["id"])
+
+        resp = app.post(
+            tk.url_for("issues_admin.ticket_update_status", ticket_id=ticket["id"]),
+            headers=HX,
+        )
+
+        assert resp.status_code == 403
+        assert call_action("issues_ticket_show", id=ticket["id"])["status"] == "opened"
+
+    def test_sysadmin_can_delete_a_ticket(self, app, ticket, sysadmin):
+        app.set_session_user(sysadmin["id"])
+
+        resp = app.post(
+            tk.url_for("issues_admin.ticket_delete", ticket_id=ticket["id"]),
+            headers=HX,
+        )
+
+        assert resp.status_code == 200
+        with pytest.raises(tk.ValidationError, match="Ticket not found"):
+            call_action("issues_ticket_show", id=ticket["id"])

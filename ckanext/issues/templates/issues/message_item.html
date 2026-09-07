@@ -63,7 +63,7 @@
             </div>
 
             <div id="message-edit-form-{{ message.id }}" style="display:none;">
-                <form hx-post="{{ h.url_for('issues_admin.update_message', message_id=message.id) }}"
+                <form hx-post="{{ h.url_for('issues.update_message', message_id=message.id) }}"
                       hx-target="#message-{{ message.id }}"
                       hx-swap="outerHTML">
                     {{ h.csrf_input() }}
