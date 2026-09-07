@@ -13,10 +13,9 @@ class TestTicketAuth:
     """Test authorization for ticket operations."""
 
     def test_ticket_create_anon(self):
-        """Test that anonymous users can create tickets."""
-        # Anyone can create tickets
-        result = call_auth("issues_ticket_create", context={"user": None, "model": model})
-        assert result is True
+        """Test that anonymous users cannot create tickets."""
+        with pytest.raises(tk.NotAuthorized):
+            call_auth("issues_ticket_create", context={"user": None, "model": model})
 
     def test_ticket_create_regular_user(self, user):
         """Test that regular users can create tickets."""
@@ -51,14 +50,15 @@ class TestMessageAuth:
 
     def test_message_delete_anon(self):
         """Test that anonymous users cannot delete messages."""
-        result = call_auth(
-            "issues_message_delete",
-            context={"user": None, "model": model},
-            data_dict={"id": "1"},
-        )
-        assert result is False
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_message_delete",
+                context={"user": None, "model": model},
+                data_dict={"id": "1"},
+            )
 
-    def test_message_delete_own_message(self, ticket, user):
+    @pytest.mark.usefixtures("with_request_context")
+    def test_message_delete_own_message(self, ticket, user, mail_server):
         """Test that users can delete their own messages."""
         from ckan.tests.helpers import call_action
 
@@ -79,11 +79,12 @@ class TestMessageAuth:
         result = call_auth(
             "issues_message_delete",
             context={"user": user["name"], "model": model, "auth_user_obj": user_obj},
-            data_dict={"id": message_id},
+            id=message_id,
         )
         assert result is True
 
-    def test_message_delete_others_message(self, ticket, user):
+    @pytest.mark.usefixtures("with_request_context")
+    def test_message_delete_others_message(self, ticket, user, mail_server):
         """Test that users cannot delete others' messages."""
         from ckan.tests.helpers import call_action
 
@@ -102,14 +103,15 @@ class TestMessageAuth:
 
         # Check auth for deleting others' message
         user_obj = model.User.get(user["id"])
-        result = call_auth(
-            "issues_message_delete",
-            context={"user": user["name"], "model": model, "auth_user_obj": user_obj},
-            data_dict={"id": message_id},
-        )
-        assert result is False
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_message_delete",
+                context={"user": user["name"], "model": model, "auth_user_obj": user_obj},
+                id=message_id,
+            )
 
-    def test_message_delete_sysadmin(self, ticket, user, sysadmin):
+    @pytest.mark.usefixtures("with_request_context")
+    def test_message_delete_sysadmin(self, ticket, user, sysadmin, mail_server):
         """Test that sysadmins can delete any message."""
         from ckan.tests.helpers import call_action
 
@@ -135,14 +137,15 @@ class TestMessageAuth:
 
     def test_message_update_anon(self):
         """Test that anonymous users cannot update messages."""
-        result = call_auth(
-            "issues_message_update",
-            context={"user": None, "model": model},
-            data_dict={"id": "1"},
-        )
-        assert result is False
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_message_update",
+                context={"user": None, "model": model},
+                data_dict={"id": "1"},
+            )
 
-    def test_message_update_own_message(self, ticket, user):
+    @pytest.mark.usefixtures("with_request_context")
+    def test_message_update_own_message(self, ticket, user, mail_server):
         """Test that users can update their own messages."""
         from ckan.tests.helpers import call_action
 
@@ -163,11 +166,12 @@ class TestMessageAuth:
         result = call_auth(
             "issues_message_update",
             context={"user": user["name"], "model": model, "auth_user_obj": user_obj},
-            data_dict={"id": message_id},
+            id=message_id,
         )
         assert result is True
 
-    def test_message_update_others_message(self, ticket, user):
+    @pytest.mark.usefixtures("with_request_context")
+    def test_message_update_others_message(self, ticket, user, mail_server):
         """Test that users cannot update others' messages."""
         from ckan.tests.helpers import call_action
 
@@ -186,14 +190,15 @@ class TestMessageAuth:
 
         # Check auth for updating others' message
         user_obj = model.User.get(user["id"])
-        result = call_auth(
-            "issues_message_update",
-            context={"user": user["name"], "model": model, "auth_user_obj": user_obj},
-            data_dict={"id": message_id},
-        )
-        assert result is False
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_message_update",
+                context={"user": user["name"], "model": model, "auth_user_obj": user_obj},
+                id=message_id,
+            )
 
-    def test_message_update_sysadmin(self, ticket, user, sysadmin):
+    @pytest.mark.usefixtures("with_request_context")
+    def test_message_update_sysadmin(self, ticket, user, sysadmin, mail_server):
         """Test that sysadmins can update any message."""
         from ckan.tests.helpers import call_action
 

@@ -35,7 +35,12 @@ def issues_ticket_create(context: types.Context, data_dict: types.DataDict) -> D
 def issues_ticket_show(context: types.Context, data_dict: types.DataDict) -> DictizedTicket:
     tk.check_access("issues_ticket_show", context, data_dict)
 
-    return cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["id"])).dictize(context)
+    ticket = cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["id"]))
+    # Session has expire_on_commit=False, so a ticket that is already in the
+    # identity map can carry a stale `messages` collection. Reload it.
+    model.Session.expire(ticket)
+
+    return ticket.dictize(context)
 
 
 @tk.side_effect_free

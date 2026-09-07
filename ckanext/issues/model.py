@@ -61,7 +61,6 @@ class Ticket(tk.BaseModel):
         return query.one_or_none()
 
     def delete(self) -> None:
-        model.Session().autoflush = False
         model.Session.delete(self)
 
     @classmethod
@@ -120,7 +119,9 @@ class TicketMessage(tk.BaseModel):
         return message
 
     def delete(self) -> None:
-        model.Session().autoflush = False
+        ticket = self.ticket
+        if ticket is not None and self in ticket.messages:
+            ticket.messages.remove(self)
         model.Session.delete(self)
 
     def update(self, content: str) -> None:
