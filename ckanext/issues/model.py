@@ -30,7 +30,7 @@ class Ticket(tk.BaseModel):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     author_id = Column(Text, ForeignKey(model.User.id), nullable=False)
-    assignee_id = Column(Text, ForeignKey(model.User.id), nullable=True)
+    assignee_id = Column(Text, ForeignKey(model.User.id, ondelete="SET NULL"), nullable=True)
 
     author = relationship(
         model.User,
@@ -38,10 +38,12 @@ class Ticket(tk.BaseModel):
         backref=backref("issues_tickets", cascade="all, delete"),
     )
 
+    # Deleting the assignee must NOT delete their tickets — just unassign them.
+    # (nullify on the ORM side; ON DELETE SET NULL covers raw-SQL deletes)
     assignee = relationship(
         model.User,
         foreign_keys=[assignee_id],
-        backref=backref("issues_assigned_tickets", cascade="all, delete"),
+        backref=backref("issues_assigned_tickets", passive_deletes=True),
     )
 
     messages = relationship(

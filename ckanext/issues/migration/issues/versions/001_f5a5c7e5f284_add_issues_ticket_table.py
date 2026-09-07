@@ -45,7 +45,7 @@ def upgrade():
         sa.Column(
             "assignee_id",
             sa.UnicodeText,
-            sa.ForeignKey("user.id"),
+            sa.ForeignKey("user.id", ondelete="SET NULL"),
             nullable=True,
         ),
     )
