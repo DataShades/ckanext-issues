@@ -97,7 +97,7 @@ def issues_ticket_assign(context: types.Context, data_dict: types.DataDict) -> D
 
 @validate(schema.message_create)
 def issues_message_create(context: types.Context, data_dict: types.DataDict) -> DictizedMessage:
-    tk.check_access("issues_ticket_create", context, data_dict)
+    tk.check_access("issues_message_create", context, data_dict)
 
     ticket = cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["ticket_id"]))
 

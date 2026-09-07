@@ -7,6 +7,8 @@ import ckan.plugins.toolkit as tk
 from ckan.tests import factories
 from ckan.tests.helpers import call_auth
 
+from ckanext.issues.model import Ticket
+
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestTicketAuth:
@@ -221,3 +223,104 @@ class TestMessageAuth:
             data_dict={"id": message_id},
         )
         assert result is True
+
+
+def _assign(ticket_id, user_id):
+    """Assign a ticket at the model level (the assign action is sysadmin-only)."""
+    t = Ticket.get(ticket_id)
+    t.assignee_id = user_id
+    model.Session.commit()
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config("ckanext.issues.notify_on_new_ticket", "false")
+class TestTicketShowAuth:
+    """The ticket author and its assignee may view it (sysadmins via core)."""
+
+    def test_author_can_view(self, ticket):
+        result = call_auth(
+            "issues_ticket_show",
+            context={"user": ticket["author"]["name"], "model": model},
+            id=ticket["id"],
+        )
+        assert result is True
+
+    def test_assignee_can_view(self, ticket, user):
+        _assign(ticket["id"], user["id"])
+        result = call_auth(
+            "issues_ticket_show",
+            context={"user": user["name"], "model": model},
+            id=ticket["id"],
+        )
+        assert result is True
+
+    def test_unrelated_user_cannot_view(self, ticket, user):
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_ticket_show",
+                context={"user": user["name"], "model": model},
+                id=ticket["id"],
+            )
+
+    def test_sysadmin_can_view(self, ticket, sysadmin):
+        result = call_auth(
+            "issues_ticket_show",
+            context={"user": sysadmin["name"], "model": model},
+            id=ticket["id"],
+        )
+        assert result is True
+
+    def test_anon_cannot_view(self, ticket):
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_ticket_show",
+                context={"user": None, "model": model},
+                id=ticket["id"],
+            )
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config("ckanext.issues.notify_on_new_ticket", "false")
+class TestMessageCreateAuth:
+    """The ticket author and its assignee may post messages (sysadmins via core)."""
+
+    def test_message_create_by_author(self, ticket):
+        result = call_auth(
+            "issues_message_create",
+            context={"user": ticket["author"]["name"], "model": model},
+            ticket_id=ticket["id"],
+        )
+        assert result is True
+
+    def test_message_create_by_assignee(self, ticket, user):
+        _assign(ticket["id"], user["id"])
+        result = call_auth(
+            "issues_message_create",
+            context={"user": user["name"], "model": model},
+            ticket_id=ticket["id"],
+        )
+        assert result is True
+
+    def test_message_create_by_other_user(self, ticket, user):
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_message_create",
+                context={"user": user["name"], "model": model},
+                ticket_id=ticket["id"],
+            )
+
+    def test_message_create_by_sysadmin(self, ticket, sysadmin):
+        result = call_auth(
+            "issues_message_create",
+            context={"user": sysadmin["name"], "model": model},
+            ticket_id=ticket["id"],
+        )
+        assert result is True
+
+    def test_message_create_anon(self, ticket):
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_message_create",
+                context={"user": None, "model": model},
+                ticket_id=ticket["id"],
+            )

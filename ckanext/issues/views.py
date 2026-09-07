@@ -87,7 +87,7 @@ class AddMessageView(MethodView):
                     "content": data_dict.get("content", ""),
                 },
             )
-        except (tk.ObjectNotFound, tk.ValidationError) as e:
+        except (tk.ObjectNotFound, tk.ValidationError, tk.NotAuthorized) as e:
             return tk.render(
                 "issues/ticket_modal_response.html",
                 extra_vars={
@@ -157,16 +157,17 @@ class UpdateMessageView(MethodView):
 
 class TicketReadView(MethodView):
     def get(self, ticket_id: str) -> str:
+        # Authorization (author / assignee / sysadmin) lives in the
+        # issues_ticket_show auth function.
         try:
             ticket = tk.get_action("issues_ticket_show")(
-                {"ignore_auth": True},
+                {"user": tk.current_user.name},
                 {"id": ticket_id},
             )
-        except tk.ValidationError:
+        except (tk.ObjectNotFound, tk.ValidationError):
             return tk.abort(404, tk._("Ticket not found"))
-
-        if not tk.current_user.sysadmin and ticket["author"]["id"] != tk.current_user.id:
-            tk.abort(403, tk._("You are not allowed to view this ticket"))
+        except tk.NotAuthorized:
+            return tk.abort(403, tk._("You are not allowed to view this ticket"))
 
         return tk.render("issues/ticket_read.html", extra_vars={"ticket": ticket})
 
