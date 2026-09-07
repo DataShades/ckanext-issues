@@ -4,8 +4,8 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text
-from sqlalchemy.orm import backref, relationship
+import sqlalchemy as sa
+from sqlalchemy.orm import Mapped, backref, relationship
 from typing_extensions import Self
 
 from ckan import model, types
@@ -30,44 +30,61 @@ def _as_pk(value: Any) -> int | None:
 
 
 class Ticket(tk.BaseModel):
-    __tablename__ = "issues_ticket"
-
     class Status:
         opened = "opened"
         closed = "closed"
 
-    id = Column(Integer, primary_key=True)
-    subject = Column(Text)
-    status = Column(Text, default=Status.opened)
-    text = Column(Text)
-    category = Column(Text)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    author_id = Column(Text, ForeignKey(model.User.id), nullable=False)
-    assignee_id = Column(Text, ForeignKey(model.User.id, ondelete="SET NULL"), nullable=True)
+    __table__ = sa.Table(
+        "issues_ticket",
+        tk.BaseModel.metadata,
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("subject", sa.Text),
+        sa.Column("status", sa.Text, default=Status.opened),
+        sa.Column("text", sa.Text),
+        sa.Column("category", sa.Text),
+        sa.Column("created_at", sa.DateTime, nullable=False, default=datetime.utcnow),
+        sa.Column("updated_at", sa.DateTime, nullable=False, default=datetime.utcnow),
+        sa.Column("author_id", sa.Text, sa.ForeignKey("user.id"), nullable=False),
+        sa.Column(
+            "assignee_id",
+            sa.Text,
+            sa.ForeignKey("user.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
+    )
 
-    author = relationship(
+    id: Mapped[int]
+    subject: Mapped[str | None]
+    status: Mapped[str | None]
+    text: Mapped[str | None]
+    category: Mapped[str | None]
+    created_at: Mapped[datetime]
+    updated_at: Mapped[datetime]
+    author_id: Mapped[str]
+    assignee_id: Mapped[str | None]
+
+    author: Mapped[model.User] = relationship(
         model.User,
-        foreign_keys=[author_id],
+        foreign_keys="Ticket.author_id",
         backref=backref("issues_tickets", cascade="all, delete"),
     )
 
     # Deleting the assignee must NOT delete their tickets — just unassign them.
     # (nullify on the ORM side; ON DELETE SET NULL covers raw-SQL deletes)
-    assignee = relationship(
+    assignee: Mapped[model.User | None] = relationship(
         model.User,
-        foreign_keys=[assignee_id],
+        foreign_keys="Ticket.assignee_id",
         backref=backref("issues_assigned_tickets", passive_deletes=True),
     )
 
-    messages = relationship(
+    messages: Mapped[list[TicketMessage]] = relationship(
         "TicketMessage",
         order_by="TicketMessage.created_at",
         cascade="all, delete",
         back_populates="ticket",
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Ticket #{self.id}: {self.subject}"
 
     @classmethod
@@ -94,11 +111,11 @@ class Ticket(tk.BaseModel):
 
     def dictize(self, context: types.Context) -> DictizedTicket:
         return DictizedTicket(
-            id=int(self.id),
-            subject=str(self.subject),
-            category=str(self.category),
-            status=str(self.status),
-            text=str(self.text),
+            id=self.id,
+            subject=self.subject or "",
+            category=self.category or "",
+            status=self.status or "",
+            text=self.text or "",
             author=self.author.as_dict(),
             assignee=self.assignee.as_dict() if self.assignee else None,
             created_at=self.created_at.isoformat(),
@@ -108,17 +125,31 @@ class Ticket(tk.BaseModel):
 
 
 class TicketMessage(tk.BaseModel):
-    __tablename__ = "issues_ticket_message"
+    __table__ = sa.Table(
+        "issues_ticket_message",
+        tk.BaseModel.metadata,
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column(
+            "ticket_id",
+            sa.Integer,
+            sa.ForeignKey("issues_ticket.id"),
+            nullable=False,
+        ),
+        sa.Column("author_id", sa.Text, sa.ForeignKey("user.id"), nullable=False),
+        sa.Column("content", sa.Text, nullable=False),
+        sa.Column("created_at", sa.DateTime, nullable=False, default=datetime.utcnow),
+        sa.Column("updated_at", sa.DateTime, nullable=True),
+    )
 
-    id = Column(Integer, primary_key=True)
-    ticket_id = Column(Integer, ForeignKey("issues_ticket.id"), nullable=False)
-    author_id = Column(Text, ForeignKey(model.User.id), nullable=False)
-    content = Column(Text, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=True)
+    id: Mapped[int]
+    ticket_id: Mapped[int]
+    author_id: Mapped[str]
+    content: Mapped[str]
+    created_at: Mapped[datetime]
+    updated_at: Mapped[datetime | None]
 
-    author = relationship(model.User)
-    ticket = relationship("Ticket", back_populates="messages")
+    author: Mapped[model.User] = relationship(model.User)
+    ticket: Mapped[Ticket] = relationship("Ticket", back_populates="messages")
 
     @classmethod
     def get(cls, message_id: Any) -> Self | None:
@@ -145,9 +176,9 @@ class TicketMessage(tk.BaseModel):
 
     def dictize(self, context: types.Context) -> DictizedMessage:
         return DictizedMessage(
-            id=int(self.id),
-            ticket_id=int(self.ticket.id),
-            content=str(self.content),
+            id=self.id,
+            ticket_id=self.ticket_id,
+            content=self.content,
             author=self.author.as_dict(),
             created_at=self.created_at.isoformat(),
             updated_at=self.updated_at.isoformat() if self.updated_at else None,

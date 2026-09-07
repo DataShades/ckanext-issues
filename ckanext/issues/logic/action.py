@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import cast
+from typing import Any
 
 from ckan import model, types
 from ckan.logic import validate
@@ -15,6 +15,29 @@ from ckanext.issues.types import DictizedMessage, DictizedTicket, TicketData
 log = logging.getLogger(__name__)
 
 _UPDATABLE_TICKET_FIELDS = {"status", "text"}
+
+
+def _get_ticket(ticket_id: Any) -> issues_model.Ticket:
+    """Fetch a ticket or raise ObjectNotFound.
+
+    Schema validation already checked the id exists, but the row can be gone
+    by the time we fetch it (a concurrent delete), and ``ticket_show`` /
+    ``ticket_delete`` allow a missing id.
+    """
+    ticket = issues_model.Ticket.get(ticket_id)
+    if ticket is None:
+        msg = "Ticket not found"
+        raise tk.ObjectNotFound(msg)
+    return ticket
+
+
+def _get_message(message_id: Any) -> issues_model.TicketMessage:
+    """Fetch a message or raise ObjectNotFound."""
+    message = issues_model.TicketMessage.get(message_id)
+    if message is None:
+        msg = "Message not found"
+        raise tk.ObjectNotFound(msg)
+    return message
 
 
 @validate(schema.ticket_create)
@@ -35,7 +58,7 @@ def issues_ticket_create(context: types.Context, data_dict: types.DataDict) -> D
 def issues_ticket_show(context: types.Context, data_dict: types.DataDict) -> DictizedTicket:
     tk.check_access("issues_ticket_show", context, data_dict)
 
-    ticket = cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["id"]))
+    ticket = _get_ticket(data_dict.get("id"))
     # Session has expire_on_commit=False, so a ticket that is already in the
     # identity map can carry a stale `messages` collection. Reload it.
     model.Session.expire(ticket)
@@ -48,7 +71,7 @@ def issues_ticket_show(context: types.Context, data_dict: types.DataDict) -> Dic
 def issues_ticket_delete(context: types.Context, data_dict: types.DataDict) -> bool:
     tk.check_access("issues_ticket_delete", context, data_dict)
 
-    ticket = cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["id"]))
+    ticket = _get_ticket(data_dict.get("id"))
     ticket.delete()
 
     model.Session.commit()
@@ -60,7 +83,7 @@ def issues_ticket_delete(context: types.Context, data_dict: types.DataDict) -> b
 def issues_ticket_update(context: types.Context, data_dict: types.DataDict) -> DictizedTicket:
     tk.check_access("issues_ticket_update", context, data_dict)
 
-    ticket = cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["id"]))
+    ticket = _get_ticket(data_dict.get("id"))
 
     for key, value in data_dict.items():
         if key in _UPDATABLE_TICKET_FIELDS:
@@ -81,7 +104,7 @@ def issues_ticket_update(context: types.Context, data_dict: types.DataDict) -> D
 def issues_ticket_assign(context: types.Context, data_dict: types.DataDict) -> DictizedTicket:
     tk.check_access("issues_ticket_assign", context, data_dict)
 
-    ticket = cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["id"]))
+    ticket = _get_ticket(data_dict.get("id"))
 
     ticket.assignee_id = data_dict.get("assignee_id")
 
@@ -99,7 +122,7 @@ def issues_ticket_assign(context: types.Context, data_dict: types.DataDict) -> D
 def issues_message_create(context: types.Context, data_dict: types.DataDict) -> DictizedMessage:
     tk.check_access("issues_message_create", context, data_dict)
 
-    ticket = cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["ticket_id"]))
+    ticket = _get_ticket(data_dict.get("ticket_id"))
 
     if ticket.status != issues_model.Ticket.Status.opened:
         raise tk.ValidationError({"ticket_id": ["Cannot add messages to closed tickets"]})
@@ -134,11 +157,7 @@ def issues_message_create(context: types.Context, data_dict: types.DataDict) -> 
 def issues_message_delete(context: types.Context, data_dict: types.DataDict) -> bool:
     tk.check_access("issues_message_delete", context, data_dict)
 
-    message = issues_model.TicketMessage.get(data_dict["id"])
-
-    if not message:
-        raise tk.ObjectNotFound("Message not found")
-
+    message = _get_message(data_dict.get("id"))
     message.delete()
     model.Session.commit()
 
@@ -151,11 +170,7 @@ def issues_message_delete(context: types.Context, data_dict: types.DataDict) -> 
 def issues_message_update(context: types.Context, data_dict: types.DataDict) -> DictizedMessage:
     tk.check_access("issues_message_update", context, data_dict)
 
-    message = issues_model.TicketMessage.get(data_dict["id"])
-
-    if not message:
-        raise tk.ObjectNotFound("Message not found")
-
+    message = _get_message(data_dict.get("id"))
     message.update(data_dict["content"])
     model.Session.commit()
 

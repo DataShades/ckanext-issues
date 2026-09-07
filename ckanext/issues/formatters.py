@@ -9,13 +9,13 @@ from ckanext.tables.shared import FormatterResult, Options, Value, formatters
 class StatusFormatter(formatters.BaseFormatter):
     """Formatter for the status column."""
 
-    def format(self, value: Value, options: Options) -> FormatterResult:
+    def format(self, value: Value, options: Options) -> FormatterResult:  # noqa: ARG002
         """Format the status value."""
         return tk.literal(
             tk.render(
                 "issues/formatters/status.html",
                 extra_vars={"value": value},
-            )
+            ),
         )
 
 
@@ -31,10 +31,10 @@ class UserNameLinkFormatter(formatters.BaseFormatter):
     the user record for URL-building.
 
     Options:
-        - ``id_field`` (str) – Row key that holds the user UUID.
+        - ``id_field`` (str) - Row key that holds the user UUID.
           **Required.**
-        - ``maxlength`` (int) – Clip display name to this length. Default 20.
-        - ``avatar`` (int) – Avatar placeholder size in pixels. Default 20.
+        - ``maxlength`` (int) - Clip display name to this length. Default 20.
+        - ``avatar`` (int) - Avatar placeholder size in pixels. Default 20.
     """
 
     def format(self, value: Value, options: Options) -> FormatterResult:

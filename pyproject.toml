@@ -52,57 +52,37 @@ extend-exclude = ["ckanext/issues/migration"]
 
 [tool.ruff.lint]
 select = [
-       "ANN0", # type annotations for function arguments
-       "B",  # likely bugs and design problems
-       "BLE",  # do not catch blind exception
-       "C4",  # better list/set/dict comprehensions
-       "C90",  # check McCabe complexity
-       "DTZ", # enforce timezone in date objects
-       "E",  # pycodestyle error
-       "W",  # pycodestyle warning
-       "F",  # pyflakes
-       "FA", # verify annotations from future
-       "G",  # format strings for logging statements
-       "N",  # naming conventions
-       "I",  # isort
-       "ICN", # import conventions
-       # "D1",  # require doc
-       "D2",  # doc formatting
-       "D4",  # doc convention
-       "PL",  # pylint
-       "PERF", # performance anti-patterns
-       "PT",  # pytest style
-       "PIE",  # misc lints
-       "RET",  # improvements for return statements
-       "RSE",  # improvements for rise statements
-       "S",  # security testing
-       "SIM",  # simplify code
-       "T10",  # debugging statements
-       "T20",  # print statements
-       "TID",  # tidier imports
-       "TRY",  # better exceptions
-       "UP",  # upgrade syntax for newer versions of the language
+       "ALL"
 ]
 
 ignore = [
+       "D",
+       "CPY",
+       "ANN401", # we use a lot of Anys
        "RET503", # don't enforce return-None
        "E712", # comparison to bool: violated by SQLAlchemy filters
        "PLC1901", # simplify comparison to empty string: violated by SQLAlchemy filters
        "N999",
+       "COM812", # missing trailing comma
        "TRY003", # CKAN's tk.Invalid/ValidationError/NotAuthorized carry the message
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"ckanext/issues/tests*" = ["S", "PL", "ANN"]
+"ckanext/issues/tests*" = ["S", "PL", "ANN", "ARG"]
+"ckanext/issues/signals.py" = ["ERA001", "ARG001"]
+"ckanext/issues/mailer.py" = ["ARG001"]
+"ckanext/issues/logic/auth.py" = ["ARG001"]
+"ckanext/issues/logic/validators.py" = ["ARG001"]
 "ckanext/issues/logic/*" = [
-            "D417", # actions don't describe context and data_dict
+    "D417", # actions don't describe context and data_dict
 ]
 "ckanext/issues/logic/schema.py" = [
-            "PLR0913", # too many keyword arguments (validator_args injection)
-            "PLR0917", # too many positional arguments (validator_args injection)
+    "PLR0913", # too many keyword arguments (validator_args injection)
+    "PLR0917", # too many positional arguments (validator_args injection)
 ]
 "ckanext/issues/model.py" = [
-            "DTZ", # CKAN models store naive UTC datetimes
+    "ARG002",
+    "DTZ", # CKAN models store naive UTC datetimes
 ]
 
 [tool.ruff.lint.flake8-import-conventions.aliases]

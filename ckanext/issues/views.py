@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 from flask import Blueprint, Response
 from flask.views import MethodView
 
@@ -9,6 +11,9 @@ from ckan.logic import parse_params
 from ckanext.tables.shared import GenericTableView
 
 from ckanext.issues.table import SupportTable, UserTicketTable
+
+if TYPE_CHECKING:
+    from ckanext.issues.types import DictizedMessage, DictizedTicket
 
 issues = Blueprint(
     "issues",
@@ -39,7 +44,7 @@ issues_admin.before_request(_sysadmin_before_request)
 issues.before_request(_authenticated_before_request)
 
 
-def init_modal():
+def init_modal() -> str:
     """This view inits the modal data on first open or after a submit."""
     return tk.render(
         "issues/ticket_modal_form.html",
@@ -47,7 +52,7 @@ def init_modal():
 
 
 class AddTicketView(MethodView):
-    def post(self):
+    def post(self) -> str:
         data_dict = parse_params(tk.request.form)
         data_dict["author_id"] = tk.g.userobj.id
 
@@ -64,7 +69,7 @@ class AddTicketView(MethodView):
             message=tk._("View your tickets at the user account page"),
         )
 
-    def _get_modal_body(self, title: str, message: str):
+    def _get_modal_body(self, title: str, message: str) -> str:
         return tk.render(
             "issues/ticket_modal_response.html",
             extra_vars={
@@ -75,7 +80,7 @@ class AddTicketView(MethodView):
 
 
 class AddMessageView(MethodView):
-    def post(self, ticket_id: str):
+    def post(self, ticket_id: str) -> str:
         data_dict = parse_params(tk.request.form)
 
         try:
@@ -96,7 +101,10 @@ class AddMessageView(MethodView):
                 },
             )
 
-        ticket = tk.get_action("issues_ticket_show")({"ignore_auth": True}, {"id": ticket_id})
+        ticket: DictizedTicket = tk.get_action("issues_ticket_show")(
+            {"ignore_auth": True},
+            {"id": ticket_id},
+        )
 
         return tk.render(
             "issues/messages_container.html",
@@ -105,7 +113,7 @@ class AddMessageView(MethodView):
 
 
 class DeleteMessageView(MethodView):
-    def post(self, message_id: str):
+    def post(self, message_id: str) -> Response | str:
         data_dict = parse_params(tk.request.form)
 
         try:
@@ -119,7 +127,7 @@ class DeleteMessageView(MethodView):
 
         # Re-render the whole thread so the reply counter and the empty state
         # stay in sync.
-        ticket = tk.get_action("issues_ticket_show")(
+        ticket: DictizedTicket = tk.get_action("issues_ticket_show")(
             {"ignore_auth": True},
             {"id": data_dict.get("ticket_id")},
         )
@@ -131,12 +139,12 @@ class DeleteMessageView(MethodView):
 
 
 class UpdateMessageView(MethodView):
-    def post(self, message_id: str):
+    def post(self, message_id: str) -> str:
         data_dict = parse_params(tk.request.form)
         data_dict["id"] = message_id
 
         try:
-            message = tk.get_action("issues_message_update")(
+            message: DictizedMessage = tk.get_action("issues_message_update")(
                 {"user": tk.g.user},
                 data_dict,
             )
@@ -149,7 +157,7 @@ class UpdateMessageView(MethodView):
                 },
             )
 
-        ticket = tk.get_action("issues_ticket_show")(
+        ticket: DictizedTicket = tk.get_action("issues_ticket_show")(
             {"ignore_auth": True},
             {"id": message["ticket_id"]},
         )
@@ -165,7 +173,7 @@ class TicketReadView(MethodView):
         # Authorization (author / assignee / sysadmin) lives in the
         # issues_ticket_show auth function.
         try:
-            ticket = tk.get_action("issues_ticket_show")(
+            ticket: DictizedTicket = tk.get_action("issues_ticket_show")(
                 {"user": tk.current_user.name},
                 {"id": ticket_id},
             )
@@ -180,7 +188,10 @@ class TicketReadView(MethodView):
 class TicketUpdateStatusView(MethodView):
     def post(self, ticket_id: str) -> Response:
         try:
-            ticket = tk.get_action("issues_ticket_show")({"ignore_auth": True}, {"id": ticket_id})
+            ticket: DictizedTicket = tk.get_action("issues_ticket_show")(
+                {"ignore_auth": True},
+                {"id": ticket_id},
+            )
             new_status = "closed" if ticket["status"] == "opened" else "opened"
             tk.get_action("issues_ticket_update")(
                 {"user": tk.g.user},
@@ -190,7 +201,7 @@ class TicketUpdateStatusView(MethodView):
             tk.h.flash_error(str(e))
             return Response("", status=400)
 
-        redirect_url = tk.url_for("issues.ticket_read", ticket_id=ticket_id)
+        redirect_url: str = tk.url_for("issues.ticket_read", ticket_id=ticket_id)
 
         if tk.request.headers.get("HX-Request"):
             return Response("", status=200, headers={"HX-Redirect": redirect_url})
@@ -202,8 +213,10 @@ class TicketAssignView(MethodView):
     def post(self, ticket_id: str) -> Response:
         data_dict = parse_params(tk.request.form)
 
-        assignee_id = data_dict.get("assignee_id")
-        action_data = {"id": ticket_id, "assignee_id": assignee_id}
+        action_data: dict[str, Any] = {
+            "id": ticket_id,
+            "assignee_id": data_dict.get("assignee_id"),
+        }
 
         try:
             tk.get_action("issues_ticket_assign")(
@@ -214,7 +227,7 @@ class TicketAssignView(MethodView):
             tk.h.flash_error(str(e))
             return Response("", status=400)
 
-        redirect_url = tk.url_for("issues.ticket_read", ticket_id=ticket_id)
+        redirect_url: str = tk.url_for("issues.ticket_read", ticket_id=ticket_id)
 
         if tk.request.headers.get("HX-Request"):
             return Response("", status=200, headers={"HX-Redirect": redirect_url})
@@ -231,7 +244,7 @@ class TicketDeleteView(MethodView):
 
         tk.h.flash_success(tk._("The ticket has been deleted"))
 
-        redirect_url = tk.url_for("issues_admin.list")
+        redirect_url: str = tk.url_for("issues_admin.list")
 
         if tk.request.headers.get("HX-Request"):
             return Response("", status=200, headers={"HX-Redirect": redirect_url})

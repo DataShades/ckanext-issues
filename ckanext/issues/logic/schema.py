@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from ckan import types
+from typing import TYPE_CHECKING
+
 from ckan.logic.schema import validator_args
 
 from ckanext.issues.model import Ticket
+
+if TYPE_CHECKING:
+    from ckan import types
 
 
 @validator_args
@@ -47,7 +51,6 @@ def ticket_assign(
     unicode_safe: types.Validator,
     ticket_id_exists: types.Validator,
     user_id_or_name_exists: types.Validator,
-    boolean_validator: types.Validator,
 ) -> types.Schema:
     return {
         "id": [not_missing, unicode_safe, ticket_id_exists],
@@ -61,7 +64,7 @@ def ticket_assign(
 
 
 @validator_args
-def ticket_update(  # noqa: PLR0913
+def ticket_update(
     not_missing: types.Validator,
     ignore_missing: types.Validator,
     unicode_safe: types.Validator,
@@ -78,7 +81,7 @@ def ticket_update(  # noqa: PLR0913
                 [
                     Ticket.Status.opened,
                     Ticket.Status.closed,
-                ]
+                ],
             ),
         ],
         "text": [ignore_missing, unicode_safe],

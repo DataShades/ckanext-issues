@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 import ckan.model as model
@@ -7,7 +9,9 @@ import ckan.plugins.toolkit as tk
 from ckan.tests.helpers import call_action
 
 from ckanext.issues.model import Ticket
-from ckanext.issues.types import DictizedTicket
+
+if TYPE_CHECKING:
+    from ckanext.issues.types import DictizedTicket
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
@@ -116,6 +120,13 @@ class TestTicketDelete:
                 context=context,
                 id="999999",
             )
+
+    def test_delete_without_id_raises_not_found(self, sysadmin):
+        """A missing id must not blow up (the schema allows it) — it 404s."""
+        context = {"user": sysadmin["name"], "model": model}
+
+        with pytest.raises(tk.ObjectNotFound):
+            call_action("issues_ticket_delete", context=context)
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, sql
 from sqlalchemy.orm import aliased
 
 import ckan.plugins.toolkit as tk
@@ -13,7 +13,7 @@ from ckanext.issues import formatters as sf
 from ckanext.issues.model import Ticket
 
 
-def _build_support_tickets_stmt():
+def _build_support_tickets_stmt() -> sql.Select:
     """Build the stmt for the support tickets table.
 
     We join the CKAN User table twice (author + assignee) and expose
@@ -52,7 +52,7 @@ def _build_support_tickets_stmt():
 
 
 class SupportTable(t.TableDefinition):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="issues_tickets",
             table_template="issues/list.html",
@@ -123,7 +123,7 @@ class SupportTable(t.TableDefinition):
     def row_action_delete(self, row: t.Row) -> t.ActionHandlerResult:
         try:
             tk.get_action("issues_ticket_delete")({"ignore_auth": True}, {"id": row["id"]})
-        except tk.ValidationError:
+        except (tk.ValidationError, tk.ObjectNotFound):
             return t.ActionHandlerResult(success=False, error=tk._("Error deleting ticket."))
 
         return t.ActionHandlerResult(success=True)
@@ -153,7 +153,7 @@ class SupportTable(t.TableDefinition):
 class UserTicketTable(t.TableDefinition):
     """Table for displaying tickets created by the current user."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         user_id = tk.g.userobj.id if tk.g.userobj else None
 
         if not user_id:
@@ -201,7 +201,8 @@ class UserTicketTable(t.TableDefinition):
         )
 
     @classmethod
-    def check_access(cls, context: types.Context) -> None:
+    def check_access(cls, context: types.Context) -> None:  # noqa: ARG003
         if tk.current_user.is_authenticated:
             return
-        raise tk.NotAuthorized("You are not authorized to view this table")
+        msg = "You are not authorized to view this table"
+        raise tk.NotAuthorized(msg)
