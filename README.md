@@ -5,6 +5,8 @@
 A CKAN extension for managing and tracking support tickets ("issues") from
 within the CKAN interface.
 
+![Screenshot of the support ticket modal](https://raw.githubusercontent.com/DataShades/ckanext-issues/master/doc/images/preview.png)
+
 It provides:
 
 * A **support ticket** modal available from the account navigation, so any
