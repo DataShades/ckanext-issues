@@ -14,7 +14,7 @@
         {% for message in ticket.messages %}
             {% snippet "issues/message_item.html", message=message, ticket=ticket %}
         {% else %}
-            {% if ticket.state == 'opened' %}
+            {% if ticket.status == 'opened' %}
                 <div class="thread-empty">
                     <i class="fa fa-comments-o"></i>
                     <p class="mb-0">{{ _('No replies yet. Be the first to respond.') }}</p>

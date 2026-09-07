@@ -105,7 +105,9 @@ class AddMessageView(MethodView):
 
 
 class DeleteMessageView(MethodView):
-    def post(self, message_id: str) -> Response:
+    def post(self, message_id: str):
+        data_dict = parse_params(tk.request.form)
+
         try:
             tk.get_action("issues_message_delete")(
                 {"user": tk.g.user},
@@ -115,8 +117,17 @@ class DeleteMessageView(MethodView):
             tk.h.flash_error(str(e))
             return Response("", status=400)
 
-        # Return empty response for HTMX to remove the element
-        return Response("", status=200)
+        # Re-render the whole thread so the reply counter and the empty state
+        # stay in sync.
+        ticket = tk.get_action("issues_ticket_show")(
+            {"ignore_auth": True},
+            {"id": data_dict.get("ticket_id")},
+        )
+
+        return tk.render(
+            "issues/messages_container.html",
+            extra_vars={"ticket": ticket},
+        )
 
 
 class UpdateMessageView(MethodView):

@@ -74,6 +74,26 @@ class TestTicketReadView:
 
         assert resp.status_code == 404
 
+    def test_open_empty_thread_shows_the_no_replies_prompt(self, app, ticket):
+        app.set_session_user(ticket["author"]["id"])
+
+        resp = app.get(tk.url_for("issues.ticket_read", ticket_id=ticket["id"]))
+
+        assert "No replies yet" in resp.body
+
+    def test_closed_empty_thread_hides_the_no_replies_prompt(self, app, ticket, sysadmin):
+        call_action(
+            "issues_ticket_update",
+            context={"user": sysadmin["name"]},
+            id=ticket["id"],
+            status="closed",
+        )
+        app.set_session_user(ticket["author"]["id"])
+
+        resp = app.get(tk.url_for("issues.ticket_read", ticket_id=ticket["id"]))
+
+        assert "No replies yet" not in resp.body
+
 
 class TestAddMessageView:
     def test_author_can_reply(self, app, ticket):
@@ -153,16 +173,38 @@ class TestMessageMutation:
         message = _add_message(ticket["id"], ticket["author"]["id"])
         app.set_session_user(ticket["author"]["id"])
 
-        resp = app.post(tk.url_for("issues.delete_message", message_id=message["id"]))
+        resp = app.post(
+            tk.url_for("issues.delete_message", message_id=message["id"]),
+            data={"ticket_id": ticket["id"]},
+        )
 
         assert resp.status_code == 200
         assert _messages(ticket["id"]) == []
+        # the re-rendered thread drops back to the empty state
+        assert "No replies yet" in resp.body
+
+    def test_deleting_one_of_several_messages_keeps_the_rest(self, app, ticket):
+        _add_message(ticket["id"], ticket["author"]["id"], content="first")
+        second = _add_message(ticket["id"], ticket["author"]["id"], content="second")
+        app.set_session_user(ticket["author"]["id"])
+
+        resp = app.post(
+            tk.url_for("issues.delete_message", message_id=second["id"]),
+            data={"ticket_id": ticket["id"]},
+        )
+
+        assert [m["content"] for m in _messages(ticket["id"])] == ["first"]
+        assert "first" in resp.body
+        assert "No replies yet" not in resp.body
 
     def test_unrelated_user_cannot_delete_message(self, app, ticket, user):
         message = _add_message(ticket["id"], ticket["author"]["id"])
         app.set_session_user(user["id"])
 
-        app.post(tk.url_for("issues.delete_message", message_id=message["id"]))
+        app.post(
+            tk.url_for("issues.delete_message", message_id=message["id"]),
+            data={"ticket_id": ticket["id"]},
+        )
 
         assert len(_messages(ticket["id"])) == 1
 
