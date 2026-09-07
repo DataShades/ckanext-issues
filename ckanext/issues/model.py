@@ -16,6 +16,19 @@ from ckanext.issues.types import DictizedMessage, DictizedTicket, TicketData
 log = logging.getLogger(__name__)
 
 
+def _as_pk(value: Any) -> int | None:
+    """Coerce a value (often a raw URL segment) to an integer primary key.
+
+    Returns ``None`` for anything that is not a plain integer, so a bogus id
+    such as ``/issues/ticket/abc`` becomes a clean "not found" rather than a
+    database ``DataError``.
+    """
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 class Ticket(tk.BaseModel):
     __tablename__ = "issues_ticket"
 
@@ -59,7 +72,8 @@ class Ticket(tk.BaseModel):
 
     @classmethod
     def get(cls, ticket_id: Any) -> Self | None:
-        return model.Session.get(cls, ticket_id) if ticket_id else None
+        pk = _as_pk(ticket_id)
+        return model.Session.get(cls, pk) if pk is not None else None
 
     def delete(self) -> None:
         model.Session.delete(self)
@@ -108,7 +122,8 @@ class TicketMessage(tk.BaseModel):
 
     @classmethod
     def get(cls, message_id: Any) -> Self | None:
-        return model.Session.get(cls, message_id) if message_id else None
+        pk = _as_pk(message_id)
+        return model.Session.get(cls, pk) if pk is not None else None
 
     @classmethod
     def add(cls, ticket_id: int, author_id: str, content: str) -> Self:

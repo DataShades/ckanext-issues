@@ -75,6 +75,13 @@ class TestTicketReadView:
 
         assert resp.status_code == 404
 
+    def test_non_numeric_ticket_id_is_404_not_500(self, app, ticket):
+        app.set_session_user(ticket["author"]["id"])
+
+        resp = app.get(tk.url_for("issues.ticket_read", ticket_id="not-a-number"))
+
+        assert resp.status_code == 404
+
     def test_open_empty_thread_shows_the_no_replies_prompt(self, app, ticket):
         app.set_session_user(ticket["author"]["id"])
 
@@ -153,7 +160,7 @@ class TestMessageMutation:
 
         resp = app.post(
             tk.url_for("issues.update_message", message_id=message["id"]),
-            data={"content": "edited", "ticket_id": ticket["id"]},
+            data={"content": "edited"},
         )
 
         assert resp.status_code == 200
@@ -165,10 +172,20 @@ class TestMessageMutation:
 
         app.post(
             tk.url_for("issues.update_message", message_id=message["id"]),
-            data={"content": "hacked", "ticket_id": ticket["id"]},
+            data={"content": "hacked"},
         )
 
         assert _messages(ticket["id"])[0]["content"] == "original"
+
+    def test_non_numeric_message_id_does_not_500(self, app, ticket):
+        app.set_session_user(ticket["author"]["id"])
+
+        resp = app.post(
+            tk.url_for("issues.update_message", message_id="not-a-number"),
+            data={"content": "x"},
+        )
+
+        assert resp.status_code < 500
 
     def test_author_can_delete_own_message(self, app, ticket):
         message = _add_message(ticket["id"], ticket["author"]["id"])

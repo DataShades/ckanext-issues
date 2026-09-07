@@ -136,7 +136,7 @@ class UpdateMessageView(MethodView):
         data_dict["id"] = message_id
 
         try:
-            tk.get_action("issues_message_update")(
+            message = tk.get_action("issues_message_update")(
                 {"user": tk.g.user},
                 data_dict,
             )
@@ -151,19 +151,13 @@ class UpdateMessageView(MethodView):
 
         ticket = tk.get_action("issues_ticket_show")(
             {"ignore_auth": True},
-            {"id": data_dict.get("ticket_id")},
+            {"id": message["ticket_id"]},
         )
 
-        for msg in ticket.get("messages", []):
-            if msg["id"] != int(message_id):
-                continue
-
-            return tk.render(
-                "issues/message_item.html",
-                extra_vars={"message": msg, "ticket": ticket},
-            )
-
-        return ""
+        return tk.render(
+            "issues/message_item.html",
+            extra_vars={"message": message, "ticket": ticket},
+        )
 
 
 class TicketReadView(MethodView):
