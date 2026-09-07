@@ -324,3 +324,26 @@ class TestAdminBlueprint:
         assert resp.status_code == 200
         with pytest.raises(tk.ValidationError, match="Ticket not found"):
             call_action("issues_ticket_show", id=ticket["id"])
+
+
+class TestHeader:
+    """The account-nav additions from ``templates/header.html``."""
+
+    def test_anonymous_does_not_see_the_support_trigger(self, app):
+        body = app.get(tk.url_for("home.index")).body
+
+        assert tk.url_for("issues.init_modal") not in body
+        assert tk.url_for("issues.my_tickets") not in body
+
+    def test_regular_user_sees_the_support_trigger(self, app, user):
+        body = app.get(tk.url_for("home.index"), headers=_auth(user["id"])).body
+
+        assert tk.url_for("issues.init_modal") in body
+        assert tk.url_for("issues.my_tickets") in body
+        assert tk.url_for("issues_admin.list") not in body
+
+    def test_sysadmin_sees_the_admin_link(self, app, sysadmin):
+        body = app.get(tk.url_for("home.index"), headers=_auth(sysadmin["id"])).body
+
+        assert tk.url_for("issues.init_modal") in body
+        assert tk.url_for("issues_admin.list") in body

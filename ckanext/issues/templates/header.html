@@ -2,7 +2,7 @@
 
 {% block header_account_profile %}
     {% if h.check_access('sysadmin') %}
-           <li>
+        <li>
             <a href="{{ h.url_for('issues_admin.list') }}" title="{{ _('Support tickets') }}">
                 <i class="fa fa-ticket"></i>
                 <span class="text">{{ _('Support tickets') }}</span>

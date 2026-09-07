@@ -19,15 +19,18 @@ It provides:
 * Email notifications (new ticket → sysadmins, new reply / status change →
   ticket author), each toggleable via config.
 
+TODO:
+* Add file uploads to messages.
+
 ## Requirements
 
 Compatibility with core CKAN versions:
 
 | CKAN version    | Compatible?   |
 | --------------- | ------------- |
-| 2.10            | not tested    |
+| 2.10            | yes           |
 | 2.11            | yes           |
-| 2.12            | not tested    |
+| 2.12            | yes           |
 
 Requires `ckanext-tables` to be installed and enabled.
 
