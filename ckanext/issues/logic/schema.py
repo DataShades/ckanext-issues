@@ -23,11 +23,11 @@ def ticket_create(
 
 @validator_args
 def ticket_show(
-    ignore_missing: types.Validator,
+    not_missing: types.Validator,
     unicode_safe: types.Validator,
     ticket_id_exists: types.Validator,
 ) -> types.Schema:
-    return {"id": [ignore_missing, unicode_safe, ticket_id_exists]}
+    return {"id": [not_missing, unicode_safe, ticket_id_exists]}
 
 
 @validator_args
