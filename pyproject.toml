@@ -1,0 +1,51 @@
+[project]
+name = "ckanext-issues"
+version = "0.0.1"
+description = "A CKAN extension for managing and tracking issues within the CKAN interface."
+readme = "README.md"
+authors = [
+    {name = "Oleksandr Cherniavskyi"}
+]
+license = {text = "AGPL"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+keywords = [ "CKAN", ]
+dependencies = [
+    "typing-extensions",
+    "ckanext-tables",
+]
+
+[project.optional-dependencies]
+test = ["pytest-ckan", "pytest-factoryboy"]
+
+[project.urls]
+Homepage = "https://github.com/DataShades/ckanext-issues"
+
+[project.entry-points."ckan.plugins"]
+issues = "ckanext.issues.plugin:IssuesPlugin"
+
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+        "ignore::sqlalchemy.exc.SADeprecationWarning",
+        "ignore::sqlalchemy.exc.SAWarning",
+        "ignore::DeprecationWarning",
+]
+addopts = "--ckan-ini test.ini"
+
+[tool.ruff]
+line-length = 127
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+

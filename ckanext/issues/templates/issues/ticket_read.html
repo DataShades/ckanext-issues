@@ -1,0 +1,24 @@
+{% extends 'page.html' %}
+
+{% block breadcrumb_content %}
+    {% if h.check_access('sysadmin') %}
+        <li>{% link_for _("Support tickets"), named_route='issues_admin.list' %}</li>
+    {% else %}
+        <li>{% link_for _("My tickets"), named_route='issues.my_tickets' %}</li>
+    {% endif %}
+    <li class="active">
+        {% link_for "Ticket #" ~ ticket.id, named_route='issues.ticket_read', ticket_id=ticket.id %}
+    </li>
+{% endblock breadcrumb_content %}
+
+{% block secondary %}{% endblock %}
+
+{% block primary %}
+    <div class="primary col-md-12" role="main">
+        <div class="my-2 py-1">
+            {% block primary_content %}
+                {% snippet "issues/ticket_read_inner.html", ticket=ticket %}
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}

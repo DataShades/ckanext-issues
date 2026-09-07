@@ -1,0 +1,14 @@
+issues-js:
+  filter: rjsmin
+  output: ckanext-issues/%(version)s-issues.js
+  contents:
+    - js/issues-modal-htmx.js
+  extra:
+    preload:
+      - base/main
+
+issues-css:
+  filter: cssrewrite
+  output: ckanext-issues/%(version)s-issues.css
+  contents:
+    - css/style.css

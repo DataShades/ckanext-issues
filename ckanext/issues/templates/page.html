@@ -1,0 +1,13 @@
+{% ckan_extends %}
+
+{% block styles %}
+    {% asset 'issues/issues-css' %}
+    {{ super() }}
+{% endblock %}
+
+{% block scripts %}
+    {% snippet 'issues/ticket_modal.html' %}
+
+    {% asset 'issues/issues-js' %}
+    {{ super() }}
+{% endblock %}
