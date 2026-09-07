@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import ckan.plugins.toolkit as tk
 from ckan import model
 
@@ -59,10 +58,6 @@ class UserNameLinkFormatter(formatters.BaseFormatter):
             user_name=display_name,
         )
 
-        link = (
-            tk.h.link_to(display_name, tk.h.url_for("user.read", id=user.name))
-            if user
-            else display_name
-        )
+        link = tk.h.link_to(display_name, tk.h.url_for("user.read", id=user.name)) if user else display_name
 
         return tk.h.literal(f"{icon} {link}")

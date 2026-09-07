@@ -6,8 +6,9 @@ from flask.views import MethodView
 import ckan.plugins.toolkit as tk
 from ckan.logic import parse_params
 
-from ckanext.issues.table import SupportTable, UserTicketTable
 from ckanext.tables.shared import GenericTableView
+
+from ckanext.issues.table import SupportTable, UserTicketTable
 
 issues = Blueprint(
     "issues",
@@ -95,9 +96,7 @@ class AddMessageView(MethodView):
                 },
             )
 
-        ticket = tk.get_action("issues_ticket_show")(
-            {"ignore_auth": True}, {"id": ticket_id}
-        )
+        ticket = tk.get_action("issues_ticket_show")({"ignore_auth": True}, {"id": ticket_id})
 
         return tk.render(
             "issues/messages_container.html",
@@ -166,10 +165,7 @@ class TicketReadView(MethodView):
         except tk.ValidationError:
             return tk.abort(404, tk._("Ticket not found"))
 
-        if (
-            not tk.current_user.sysadmin
-            and ticket["author"]["id"] != tk.current_user.id
-        ):
+        if not tk.current_user.sysadmin and ticket["author"]["id"] != tk.current_user.id:
             tk.abort(403, tk._("You are not allowed to view this ticket"))
 
         return tk.render("issues/ticket_read.html", extra_vars={"ticket": ticket})
@@ -178,9 +174,7 @@ class TicketReadView(MethodView):
 class TicketUpdateStatusView(MethodView):
     def post(self, ticket_id: str) -> Response:
         try:
-            ticket = tk.get_action("issues_ticket_show")(
-                {"ignore_auth": True}, {"id": ticket_id}
-            )
+            ticket = tk.get_action("issues_ticket_show")({"ignore_auth": True}, {"id": ticket_id})
             new_status = "closed" if ticket["status"] == "opened" else "opened"
             tk.get_action("issues_ticket_update")(
                 {"user": tk.g.user},
@@ -244,25 +238,17 @@ issues.add_url_rule(
     "/my-tickets",
     view_func=GenericTableView.as_view("my_tickets", table=UserTicketTable),
 )
-issues.add_url_rule(
-    "/ticket/<ticket_id>", view_func=TicketReadView.as_view("ticket_read")
-)
-issues.add_url_rule(
-    "/ticket/<ticket_id>/message", view_func=AddMessageView.as_view("add_message")
-)
+issues.add_url_rule("/ticket/<ticket_id>", view_func=TicketReadView.as_view("ticket_read"))
+issues.add_url_rule("/ticket/<ticket_id>/message", view_func=AddMessageView.as_view("add_message"))
 issues.add_url_rule("/init_modal", view_func=init_modal)
-issues.add_url_rule(
-    "/add_ticket", view_func=AddTicketView.as_view("add_ticket"), methods=("POST",)
-)
+issues.add_url_rule("/add_ticket", view_func=AddTicketView.as_view("add_ticket"), methods=("POST",))
 issues.add_url_rule(
     "/message/<message_id>/delete",
     view_func=DeleteMessageView.as_view("delete_message"),
     methods=("POST",),
 )
 # issues_admin — sysadmins only
-issues_admin.add_url_rule(
-    "/", view_func=GenericTableView.as_view("list", table=SupportTable)
-)
+issues_admin.add_url_rule("/", view_func=GenericTableView.as_view("list", table=SupportTable))
 issues_admin.add_url_rule(
     "/ticket/<ticket_id>/update-status",
     view_func=TicketUpdateStatusView.as_view("ticket_update_status"),

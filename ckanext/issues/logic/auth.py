@@ -6,21 +6,15 @@ from ckan.plugins import toolkit as tk
 from ckanext.issues.model import Ticket, TicketMessage
 
 
-def issues_ticket_delete(
-    context: types.Context, data_dict: types.DataDict
-) -> types.AuthResult:
+def issues_ticket_delete(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
     return _sysadmin_only()
 
 
-def issues_ticket_update(
-    context: types.Context, data_dict: types.DataDict
-) -> types.AuthResult:
+def issues_ticket_update(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
     return _sysadmin_only()
 
 
-def issues_ticket_show(
-    context: types.Context, data_dict: types.DataDict
-) -> types.AuthResult:
+def issues_ticket_show(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
     user = context.get("user")
     if not user:
         return {"success": False}
@@ -41,21 +35,15 @@ def issues_ticket_show(
     return {"success": False}
 
 
-def issues_ticket_create(
-    context: types.Context, data_dict: types.DataDict
-) -> types.AuthResult:
+def issues_ticket_create(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
     return {"success": True}
 
 
-def issues_ticket_assign(
-    context: types.Context, data_dict: types.DataDict
-) -> types.AuthResult:
+def issues_ticket_assign(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
     return _sysadmin_only()
 
 
-def issues_message_delete(
-    context: types.Context, data_dict: types.DataDict
-) -> types.AuthResult:
+def issues_message_delete(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
     """Allow sysadmins to delete any message, regular users can only delete their own."""
     user = context.get("user")
 
@@ -78,9 +66,7 @@ def issues_message_delete(
     return {"success": False}
 
 
-def issues_message_update(
-    context: types.Context, data_dict: types.DataDict
-) -> types.AuthResult:
+def issues_message_update(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
     """Allow sysadmins to update any message, regular users can only update their own."""
     user = context.get("user")
 

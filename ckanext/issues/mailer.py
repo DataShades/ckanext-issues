@@ -142,9 +142,7 @@ def _render_new_ticket(ticket: DictizedTicket, recipient_name: str) -> str:
     )
 
 
-def _render_new_message(
-    ticket: DictizedTicket, message: DictizedMessage, recipient_name: str
-) -> str:
+def _render_new_message(ticket: DictizedTicket, message: DictizedMessage, recipient_name: str) -> str:
     return tk.render(
         "issues/emails/new_message.txt",
         extra_vars={
@@ -174,6 +172,5 @@ def _base_vars(ticket: DictizedTicket) -> dict:
     return {
         "site_title": tk.config.get("ckan.site_title", "CKAN"),
         "site_url": site_url,
-        "ticket_url": site_url.rstrip("/")
-        + tk.url_for("issues.ticket_read", ticket_id=ticket["id"]),
+        "ticket_url": site_url.rstrip("/") + tk.url_for("issues.ticket_read", ticket_id=ticket["id"]),
     }

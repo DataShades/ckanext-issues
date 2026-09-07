@@ -15,24 +15,18 @@ class TestTicketAuth:
     def test_ticket_create_anon(self):
         """Test that anonymous users can create tickets."""
         # Anyone can create tickets
-        result = call_auth(
-            "issues_ticket_create", context={"user": None, "model": model}
-        )
+        result = call_auth("issues_ticket_create", context={"user": None, "model": model})
         assert result is True
 
     def test_ticket_create_regular_user(self, user):
         """Test that regular users can create tickets."""
-        result = call_auth(
-            "issues_ticket_create", context={"user": user["name"], "model": model}
-        )
+        result = call_auth("issues_ticket_create", context={"user": user["name"], "model": model})
         assert result is True
 
     def test_ticket_delete_anon(self):
         """Test that anonymous users cannot delete tickets."""
         with pytest.raises(tk.NotAuthorized):
-            call_auth(
-                "issues_ticket_delete", context={"user": None, "model": model}
-            )
+            call_auth("issues_ticket_delete", context={"user": None, "model": model})
 
     def test_ticket_delete_regular_user(self, user):
         """Test that regular users cannot delete tickets."""

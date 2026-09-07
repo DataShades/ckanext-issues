@@ -1,4 +1,4 @@
-[![Tests](https://github.com/DataShades/ckanext-issues/workflows/Tests/badge.svg?branch=main)](https://github.com/DataShades/ckanext-issues/actions)
+[![Tests](https://github.com/DataShades/ckanext-issues/actions/workflows/test.yml/badge.svg)](https://github.com/DataShades/ckanext-issues/actions/workflows/test.yml)
 
 # ckanext-issues
 
@@ -17,12 +17,6 @@ It provides:
 * Email notifications (new ticket → sysadmins, new reply / status change →
   ticket author), each toggleable via config.
 
-This extension was extracted from the `admin_panel_support` plugin of
-`ckanext-admin-panel`. It no longer depends on `ckanext-admin-panel`; the only
-CKAN-extension dependency is [`ckanext-tables`](https://github.com/DataShades/ckanext-tables),
-which powers the ticket tables.
-
-
 ## Requirements
 
 Compatibility with core CKAN versions:
@@ -31,9 +25,9 @@ Compatibility with core CKAN versions:
 | --------------- | ------------- |
 | 2.10            | not tested    |
 | 2.11            | yes           |
+| 2.12            | not tested    |
 
 Requires `ckanext-tables` to be installed and enabled.
-
 
 ## Installation
 
@@ -46,7 +40,8 @@ Requires `ckanext-tables` to be installed and enabled.
     git clone https://github.com/DataShades/ckanext-issues.git
     cd ckanext-issues
     pip install -e .
-    pip install -r requirements.txt
+
+   This also pulls in `ckanext-tables`.
 
 3. Add `tables issues` to the `ckan.plugins` setting in your CKAN
    config file (`issues` must be listed after `tables`).

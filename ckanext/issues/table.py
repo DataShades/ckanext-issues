@@ -8,6 +8,7 @@ from ckan import model as ckan_model
 from ckan import types
 
 import ckanext.tables.shared as t
+
 from ckanext.issues import formatters as sf
 from ckanext.issues.model import Ticket
 
@@ -28,12 +29,8 @@ def _build_support_tickets_stmt():
     author_alias = aliased(ckan_model.User, name="author")
     assignee_alias = aliased(ckan_model.User, name="assignee")
 
-    author_display = func.coalesce(author_alias.fullname, author_alias.name).label(
-        "author_name"
-    )
-    assignee_display = func.coalesce(
-        assignee_alias.fullname, assignee_alias.name
-    ).label("assignee_name")
+    author_display = func.coalesce(author_alias.fullname, author_alias.name).label("author_name")
+    assignee_display = func.coalesce(assignee_alias.fullname, assignee_alias.name).label("assignee_name")
 
     return (
         select(
@@ -76,9 +73,7 @@ class SupportTable(t.TableDefinition):
                 t.ColumnDefinition(
                     field="assignee_name",
                     title="Assignee",
-                    formatters=[
-                        (sf.UserNameLinkFormatter, {"id_field": "assignee_id"})
-                    ],
+                    formatters=[(sf.UserNameLinkFormatter, {"id_field": "assignee_id"})],
                     tabulator_formatter="html",
                 ),
                 t.ColumnDefinition(field="category", title="Category"),
@@ -92,9 +87,7 @@ class SupportTable(t.TableDefinition):
                     icon="fa fa-eye",
                     callback=lambda row: t.ActionHandlerResult(
                         success=True,
-                        redirect=tk.url_for(
-                            "issues.ticket_read", ticket_id=row["id"]
-                        ),
+                        redirect=tk.url_for("issues.ticket_read", ticket_id=row["id"]),
                     ),
                 ),
                 t.RowActionDefinition(
@@ -129,13 +122,9 @@ class SupportTable(t.TableDefinition):
 
     def row_action_delete(self, row: t.Row) -> t.ActionHandlerResult:
         try:
-            tk.get_action("issues_ticket_delete")(
-                {"ignore_auth": True}, {"id": row["id"]}
-            )
+            tk.get_action("issues_ticket_delete")({"ignore_auth": True}, {"id": row["id"]})
         except tk.ValidationError:
-            return t.ActionHandlerResult(
-                success=False, error=tk._("Error deleting ticket.")
-            )
+            return t.ActionHandlerResult(success=False, error=tk._("Error deleting ticket."))
 
         return t.ActionHandlerResult(success=True)
 
@@ -157,9 +146,7 @@ class SupportTable(t.TableDefinition):
 
     def bulk_remove(self, rows: list[t.Row]) -> t.ActionHandlerResult:
         for row in rows:
-            tk.get_action("issues_ticket_delete")(
-                {"ignore_auth": True}, {"id": row["id"]}
-            )
+            tk.get_action("issues_ticket_delete")({"ignore_auth": True}, {"id": row["id"]})
         return t.ActionHandlerResult(success=True, message="Ticket(s) removed.")
 
 
@@ -178,12 +165,8 @@ class UserTicketTable(t.TableDefinition):
                 Ticket.subject,
                 Ticket.status,
                 Ticket.category,
-                func.to_char(Ticket.created_at, "YYYY-MM-DD HH24:MI").label(
-                    "created_at"
-                ),
-                func.to_char(Ticket.updated_at, "YYYY-MM-DD HH24:MI").label(
-                    "updated_at"
-                ),
+                func.to_char(Ticket.created_at, "YYYY-MM-DD HH24:MI").label("created_at"),
+                func.to_char(Ticket.updated_at, "YYYY-MM-DD HH24:MI").label("updated_at"),
             )
             .where(Ticket.author_id == user_id)
             .order_by(Ticket.updated_at.desc())
@@ -211,9 +194,7 @@ class UserTicketTable(t.TableDefinition):
                     icon="fa fa-eye",
                     callback=lambda row: t.ActionHandlerResult(
                         success=True,
-                        redirect=tk.url_for(
-                            "issues.ticket_read", ticket_id=row["id"]
-                        ),
+                        redirect=tk.url_for("issues.ticket_read", ticket_id=row["id"]),
                     ),
                 ),
             ],

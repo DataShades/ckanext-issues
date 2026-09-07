@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import pytest
+
 import ckan.model as model
 import ckan.plugins.toolkit as tk
-import pytest
 
 import ckanext.issues.logic.validators as issues_validators
 
@@ -13,9 +14,7 @@ class TestTicketIdExists:
 
     def test_valid_ticket_id(self, ticket):
         """Test that a valid ticket ID passes validation."""
-        result = issues_validators.ticket_id_exists(
-            ticket["id"], {"session": model.Session}
-        )
+        result = issues_validators.ticket_id_exists(ticket["id"], {"session": model.Session})
         assert result == ticket["id"]
 
     def test_invalid_ticket_id(self):
@@ -49,9 +48,7 @@ class TestMessageIdExists:
         updated_ticket = call_action("issues_ticket_show", id=ticket["id"])
         message_id = updated_ticket["messages"][0]["id"]
 
-        result = issues_validators.message_id_exists(
-            message_id, {"session": model.Session}
-        )
+        result = issues_validators.message_id_exists(message_id, {"session": model.Session})
         assert result == message_id
 
     def test_invalid_message_id(self):

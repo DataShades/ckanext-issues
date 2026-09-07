@@ -147,9 +147,7 @@ class TestMessageCreate:
         )
 
         # Try to add a message
-        with pytest.raises(
-            tk.ValidationError, match="Cannot add messages to closed tickets"
-        ):
+        with pytest.raises(tk.ValidationError, match="Cannot add messages to closed tickets"):
             call_action(
                 "issues_message_create",
                 ticket_id=ticket["id"],
@@ -300,10 +298,7 @@ class TestMessageUpdate:
         # Verify the message is updated
         updated_ticket = call_action("issues_ticket_show", id=ticket["id"])
         assert updated_ticket["messages"][0]["content"] == "Updated content"
-        assert (
-            updated_ticket["messages"][0]["updated_at"]
-            != updated_ticket["messages"][0]["created_at"]
-        )
+        assert updated_ticket["messages"][0]["updated_at"] != updated_ticket["messages"][0]["created_at"]
 
     def test_update_message_as_sysadmin(self, ticket, user, sysadmin):
         """Test that a sysadmin can update any message."""

@@ -18,9 +18,7 @@ _UPDATABLE_TICKET_FIELDS = {"status", "text"}
 
 
 @validate(schema.ticket_create)
-def issues_ticket_create(
-    context: types.Context, data_dict: types.DataDict
-) -> DictizedTicket:
+def issues_ticket_create(context: types.Context, data_dict: types.DataDict) -> DictizedTicket:
     tk.check_access("issues_ticket_create", context, data_dict)
 
     ticket = issues_model.Ticket.add(TicketData(**data_dict))
@@ -34,14 +32,10 @@ def issues_ticket_create(
 
 @tk.side_effect_free
 @validate(schema.ticket_show)
-def issues_ticket_show(
-    context: types.Context, data_dict: types.DataDict
-) -> DictizedTicket:
+def issues_ticket_show(context: types.Context, data_dict: types.DataDict) -> DictizedTicket:
     tk.check_access("issues_ticket_show", context, data_dict)
 
-    return cast(
-        issues_model.Ticket, issues_model.Ticket.get(data_dict["id"])
-    ).dictize(context)
+    return cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["id"])).dictize(context)
 
 
 @tk.side_effect_free
@@ -58,9 +52,7 @@ def issues_ticket_delete(context: types.Context, data_dict: types.DataDict) -> b
 
 
 @validate(schema.ticket_update)
-def issues_ticket_update(
-    context: types.Context, data_dict: types.DataDict
-) -> DictizedTicket:
+def issues_ticket_update(context: types.Context, data_dict: types.DataDict) -> DictizedTicket:
     tk.check_access("issues_ticket_update", context, data_dict)
 
     ticket = cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["id"]))
@@ -81,9 +73,7 @@ def issues_ticket_update(
 
 
 @validate(schema.ticket_assign)
-def issues_ticket_assign(
-    context: types.Context, data_dict: types.DataDict
-) -> DictizedTicket:
+def issues_ticket_assign(context: types.Context, data_dict: types.DataDict) -> DictizedTicket:
     tk.check_access("issues_ticket_assign", context, data_dict)
 
     ticket = cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["id"]))
@@ -101,19 +91,13 @@ def issues_ticket_assign(
 
 
 @validate(schema.message_create)
-def issues_message_create(
-    context: types.Context, data_dict: types.DataDict
-) -> DictizedMessage:
+def issues_message_create(context: types.Context, data_dict: types.DataDict) -> DictizedMessage:
     tk.check_access("issues_ticket_create", context, data_dict)
 
-    ticket = cast(
-        issues_model.Ticket, issues_model.Ticket.get(data_dict["ticket_id"])
-    )
+    ticket = cast(issues_model.Ticket, issues_model.Ticket.get(data_dict["ticket_id"]))
 
     if ticket.status != issues_model.Ticket.Status.opened:
-        raise tk.ValidationError(
-            {"ticket_id": ["Cannot add messages to closed tickets"]}
-        )
+        raise tk.ValidationError({"ticket_id": ["Cannot add messages to closed tickets"]})
 
     message = issues_model.TicketMessage.add(
         ticket_id=data_dict["ticket_id"],
@@ -142,9 +126,7 @@ def issues_message_create(
 
 
 @validate(schema.message_delete)
-def issues_message_delete(
-    context: types.Context, data_dict: types.DataDict
-) -> bool:
+def issues_message_delete(context: types.Context, data_dict: types.DataDict) -> bool:
     tk.check_access("issues_message_delete", context, data_dict)
 
     message = issues_model.TicketMessage.get(data_dict["id"])
@@ -161,9 +143,7 @@ def issues_message_delete(
 
 
 @validate(schema.message_update)
-def issues_message_update(
-    context: types.Context, data_dict: types.DataDict
-) -> DictizedMessage:
+def issues_message_update(context: types.Context, data_dict: types.DataDict) -> DictizedMessage:
     tk.check_access("issues_message_update", context, data_dict)
 
     message = issues_model.TicketMessage.get(data_dict["id"])

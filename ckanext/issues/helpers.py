@@ -8,10 +8,7 @@ from ckanext.issues import config as issues_config
 
 
 def issues_get_category_options() -> list[dict[str, Any]]:
-    return [
-        {"value": category, "text": category}
-        for category in issues_config.get_ticket_categories()
-    ]
+    return [{"value": category, "text": category} for category in issues_config.get_ticket_categories()]
 
 
 def issues_get_sysadmins() -> list[dict[str, str]]:
