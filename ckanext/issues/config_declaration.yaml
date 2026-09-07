@@ -1,0 +1,41 @@
+version: 1
+groups:
+- annotation: ckanext-issues
+  options:
+  - key: ckanext.issues.category_list
+    example: |
+      Feature request
+      Data request
+      Bug report
+      Other
+    description: |
+      Categories a user can choose from when opening a support ticket, one per
+      line (indent the continuation lines in the ini). Names may contain spaces.
+      Default: Feature request, Data request, Bug report, Other.
+
+  - key: ckanext.issues.max_open_tickets_per_user
+    type: int
+    default: 5
+    example: 1
+    description: |
+      Maximum number of tickets a non-sysadmin user may keep in the "opened"
+      state at the same time. Once the cap is reached the user must wait for a
+      ticket to be closed before opening another. Set to 0 to disable the check.
+
+  - key: ckanext.issues.notify_on_new_ticket
+    type: bool
+    default: true
+    description: |
+      Email active sysadmins (and the assignee, if any) when a ticket is created.
+
+  - key: ckanext.issues.notify_on_new_message
+    type: bool
+    default: true
+    description: |
+      Email the ticket author when someone else replies on their ticket.
+
+  - key: ckanext.issues.notify_on_ticket_update
+    type: bool
+    default: true
+    description: |
+      Email the ticket author when their ticket is updated (status, assignee...).

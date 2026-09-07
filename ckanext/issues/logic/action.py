@@ -8,6 +8,7 @@ from ckan.logic import validate
 from ckan.plugins import toolkit as tk
 
 import ckanext.issues.model as issues_model
+from ckanext.issues import config
 from ckanext.issues import signals as issues_signals
 from ckanext.issues.logic import schema
 from ckanext.issues.types import DictizedMessage, DictizedTicket, TicketData
@@ -40,9 +41,40 @@ def _get_message(message_id: Any) -> issues_model.TicketMessage:
     return message
 
 
+def _enforce_open_ticket_limit(context: types.Context, author_id: str) -> None:
+    """Reject creation when the author already has too many open tickets.
+
+    Sysadmins and internal (``ignore_auth``) callers are exempt; a limit of
+    ``0`` disables the check.
+    """
+    if context.get("ignore_auth"):
+        return
+
+    limit = config.get_max_open_tickets_per_user()
+    if limit <= 0:
+        return
+
+    user = model.User.get(author_id)
+    if not user or user.sysadmin:
+        return
+
+    if issues_model.Ticket.count_open_for_author(user.id) >= limit:
+        raise tk.ValidationError(
+            {
+                "author_id": [
+                    tk._(
+                        "You already have {n} open support tickets. Please wait "
+                        "for one to be resolved before opening another."
+                    ).format(n=limit)
+                ]
+            }
+        )
+
+
 @validate(schema.ticket_create)
 def issues_ticket_create(context: types.Context, data_dict: types.DataDict) -> DictizedTicket:
     tk.check_access("issues_ticket_create", context, data_dict)
+    _enforce_open_ticket_limit(context, data_dict["author_id"])
 
     ticket = issues_model.Ticket.add(TicketData(**data_dict))
 

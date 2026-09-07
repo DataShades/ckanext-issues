@@ -45,6 +45,60 @@ class TestTicketCreate:
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
+class TestOpenTicketLimit:
+    """ckanext.issues.max_open_tickets_per_user caps concurrent open tickets."""
+
+    @staticmethod
+    def _create(user_dict, *, ignore_auth=False):
+        return call_action(
+            "issues_ticket_create",
+            context={"user": user_dict["name"], "ignore_auth": ignore_auth},
+            subject="Help",
+            text="please",
+            category="Bug report",
+            author_id=user_dict["id"],
+        )
+
+    @pytest.mark.ckan_config("ckanext.issues.max_open_tickets_per_user", 2)
+    def test_blocks_once_the_cap_is_reached(self, user):
+        self._create(user)
+        self._create(user)
+
+        with pytest.raises(tk.ValidationError, match="open support tickets"):
+            self._create(user)
+
+    @pytest.mark.ckan_config("ckanext.issues.max_open_tickets_per_user", 2)
+    def test_closed_tickets_free_up_a_slot(self, user, sysadmin):
+        first = self._create(user)
+        self._create(user)
+
+        call_action(
+            "issues_ticket_update",
+            context={"user": sysadmin["name"], "model": model},
+            id=first["id"],
+            status=Ticket.Status.closed,
+        )
+
+        # back under the cap → allowed again
+        self._create(user)
+
+    @pytest.mark.ckan_config("ckanext.issues.max_open_tickets_per_user", 1)
+    def test_sysadmins_are_exempt(self, sysadmin):
+        self._create(sysadmin)
+        self._create(sysadmin)
+
+    @pytest.mark.ckan_config("ckanext.issues.max_open_tickets_per_user", 1)
+    def test_internal_ignore_auth_callers_are_exempt(self, user):
+        for _ in range(3):
+            self._create(user, ignore_auth=True)
+
+    @pytest.mark.ckan_config("ckanext.issues.max_open_tickets_per_user", 0)
+    def test_zero_disables_the_check(self, user):
+        for _ in range(4):
+            self._create(user)
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestTicketShow:
     def test_show_ticket(self, ticket):
         """Test retrieving a ticket by ID."""
@@ -61,8 +115,7 @@ class TestTicketShow:
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestTicketUpdate:
-    @pytest.mark.usefixtures("with_request_context")
-    def test_update_status(self, ticket, sysadmin, mail_server):
+    def test_update_status(self, ticket, sysadmin):
         """Test updating a ticket's status."""
         context = {"user": sysadmin["name"], "model": model}
 
@@ -131,8 +184,7 @@ class TestTicketDelete:
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestMessageCreate:
-    @pytest.mark.usefixtures("with_request_context")
-    def test_create_message(self, ticket, user, mail_server):
+    def test_create_message(self, ticket, user):
         """Test creating a message on an opened ticket."""
         result = call_action(
             "issues_message_create",
@@ -148,8 +200,7 @@ class TestMessageCreate:
         assert len(updated_ticket["messages"]) == 1
         assert updated_ticket["messages"][0]["content"] == "This is a test message"
 
-    @pytest.mark.usefixtures("with_request_context")
-    def test_create_message_on_closed_ticket(self, ticket, user, sysadmin, mail_server):
+    def test_create_message_on_closed_ticket(self, ticket, user, sysadmin):
         """Test that creating a message on a closed ticket fails."""
         # Close the ticket
         context = {"user": sysadmin["name"], "model": model}
@@ -182,8 +233,7 @@ class TestMessageCreate:
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestMessageDelete:
-    @pytest.mark.usefixtures("with_request_context")
-    def test_delete_message_as_author(self, ticket, user, mail_server):
+    def test_delete_message_as_author(self, ticket, user):
         """Test that a user can delete their own message."""
         # Create a message
         call_action(
@@ -215,8 +265,7 @@ class TestMessageDelete:
         updated_ticket = call_action("issues_ticket_show", id=ticket["id"])
         assert len(updated_ticket["messages"]) == 0
 
-    @pytest.mark.usefixtures("with_request_context")
-    def test_delete_message_as_sysadmin(self, ticket, user, sysadmin, mail_server):
+    def test_delete_message_as_sysadmin(self, ticket, user, sysadmin):
         """Test that a sysadmin can delete any message."""
         # Create a message
         call_action(
@@ -257,8 +306,7 @@ class TestMessageDelete:
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestMessageUpdate:
-    @pytest.mark.usefixtures("with_request_context")
-    def test_update_message_as_author(self, ticket, user, mail_server):
+    def test_update_message_as_author(self, ticket, user):
         """Test that a user can update their own message."""
         # Create a message
         call_action(
@@ -292,8 +340,7 @@ class TestMessageUpdate:
         assert updated_ticket["messages"][0]["content"] == "Updated content"
         assert updated_ticket["messages"][0]["updated_at"] != updated_ticket["messages"][0]["created_at"]
 
-    @pytest.mark.usefixtures("with_request_context")
-    def test_update_message_as_sysadmin(self, ticket, user, sysadmin, mail_server):
+    def test_update_message_as_sysadmin(self, ticket, user, sysadmin):
         """Test that a sysadmin can update any message."""
         # Create a message
         call_action(

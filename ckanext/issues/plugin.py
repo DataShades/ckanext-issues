@@ -13,6 +13,7 @@ from ckanext.issues import signals as issues_signals
 @tk.blanket.auth_functions
 @tk.blanket.validators
 @tk.blanket.helpers
+@tk.blanket.config_declarations
 class IssuesPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer)
     p.implements(p.ISignal)

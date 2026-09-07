@@ -32,8 +32,7 @@ class TestTicketIdExists:
 class TestMessageIdExists:
     """Test the message_id_exists validator."""
 
-    @pytest.mark.usefixtures("with_request_context")
-    def test_valid_message_id(self, ticket, user, mail_server):
+    def test_valid_message_id(self, ticket, user):
         """Test that a valid message ID passes validation."""
         from ckan.tests.helpers import call_action
 

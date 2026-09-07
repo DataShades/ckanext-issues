@@ -57,17 +57,7 @@ Requires `ckanext-tables` to be installed and enabled.
 
 ## Config settings
 
-```ini
-# Allowed ticket categories (space/newline separated list).
-# (optional, default: Feature request, Data request, Bug report, Other)
-ckanext.issues.category_list = "Feature request" "Data request" "Bug report" Other
-
-# Email notifications (optional, all default: true)
-ckanext.issues.notify_on_new_ticket = true
-ckanext.issues.notify_on_new_message = true
-ckanext.issues.notify_on_ticket_update = true
-```
-
+See the available config options in [`config_declaration.yaml`](ckanext/issues/config_declaration.yaml).
 
 ## Developer installation
 

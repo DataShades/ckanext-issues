@@ -1,6 +1,6 @@
 include README.md
 include LICENSE
-recursive-include ckanext/issues *.html *.json *.js *.less *.css *.scss *.mo *.yml *.txt
+recursive-include ckanext/issues *.html *.json *.js *.less *.css *.scss *.mo *.yml *.yaml *.txt
 recursive-include ckanext/issues/migration *.ini *.py *.mako README
 recursive-include ckanext/issues/public *.*
 recursive-include ckanext/issues/i18n *.po *.mo *.pot

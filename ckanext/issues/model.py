@@ -92,6 +92,15 @@ class Ticket(tk.BaseModel):
         pk = _as_pk(ticket_id)
         return model.Session.get(cls, pk) if pk is not None else None
 
+    @classmethod
+    def count_open_for_author(cls, author_id: str) -> int:
+        stmt = (
+            sa.select(sa.func.count())
+            .select_from(cls)
+            .where(cls.author_id == author_id, cls.status == cls.Status.opened)
+        )
+        return model.Session.scalar(stmt) or 0
+
     def delete(self) -> None:
         model.Session.delete(self)
 

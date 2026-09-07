@@ -59,8 +59,7 @@ class TestMessageAuth:
                 data_dict={"id": "1"},
             )
 
-    @pytest.mark.usefixtures("with_request_context")
-    def test_message_delete_own_message(self, ticket, user, mail_server):
+    def test_message_delete_own_message(self, ticket, user):
         """Test that users can delete their own messages."""
         from ckan.tests.helpers import call_action
 
@@ -85,8 +84,7 @@ class TestMessageAuth:
         )
         assert result is True
 
-    @pytest.mark.usefixtures("with_request_context")
-    def test_message_delete_others_message(self, ticket, user, mail_server):
+    def test_message_delete_others_message(self, ticket, user):
         """Test that users cannot delete others' messages."""
         from ckan.tests.helpers import call_action
 
@@ -112,8 +110,7 @@ class TestMessageAuth:
                 id=message_id,
             )
 
-    @pytest.mark.usefixtures("with_request_context")
-    def test_message_delete_sysadmin(self, ticket, user, sysadmin, mail_server):
+    def test_message_delete_sysadmin(self, ticket, user, sysadmin):
         """Test that sysadmins can delete any message."""
         from ckan.tests.helpers import call_action
 
@@ -146,8 +143,7 @@ class TestMessageAuth:
                 data_dict={"id": "1"},
             )
 
-    @pytest.mark.usefixtures("with_request_context")
-    def test_message_update_own_message(self, ticket, user, mail_server):
+    def test_message_update_own_message(self, ticket, user):
         """Test that users can update their own messages."""
         from ckan.tests.helpers import call_action
 
@@ -172,8 +168,7 @@ class TestMessageAuth:
         )
         assert result is True
 
-    @pytest.mark.usefixtures("with_request_context")
-    def test_message_update_others_message(self, ticket, user, mail_server):
+    def test_message_update_others_message(self, ticket, user):
         """Test that users cannot update others' messages."""
         from ckan.tests.helpers import call_action
 
@@ -199,8 +194,7 @@ class TestMessageAuth:
                 id=message_id,
             )
 
-    @pytest.mark.usefixtures("with_request_context")
-    def test_message_update_sysadmin(self, ticket, user, sysadmin, mail_server):
+    def test_message_update_sysadmin(self, ticket, user, sysadmin):
         """Test that sysadmins can update any message."""
         from ckan.tests.helpers import call_action
 
@@ -233,7 +227,6 @@ def _assign(ticket_id, user_id):
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
-@pytest.mark.ckan_config("ckanext.issues.notify_on_new_ticket", "false")
 class TestTicketShowAuth:
     """The ticket author and its assignee may view it (sysadmins via core)."""
 
@@ -280,7 +273,6 @@ class TestTicketShowAuth:
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
-@pytest.mark.ckan_config("ckanext.issues.notify_on_new_ticket", "false")
 class TestMessageCreateAuth:
     """The ticket author and its assignee may post messages (sysadmins via core)."""
 
