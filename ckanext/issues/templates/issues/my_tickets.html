@@ -1,7 +1,9 @@
 {% extends 'page.html' %}
 
+{% block subtitle %}{{ _('My tickets') }}{% endblock %}
+
 {% block breadcrumb_content %}
-    <li class="active">{% link_for _("My Support Requests"), request.endpoint %}</li>
+    <li class="active">{% link_for _("My tickets"), request.endpoint %}</li>
 {% endblock breadcrumb_content %}
 
 {% block secondary %}{% endblock %}
@@ -9,6 +11,11 @@
 {% block primary %}
     <div class="primary col-md-12" role="main">
         <div class="pt-2">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <h1 class="mb-0">{{ _("My tickets") }}</h1>
+                {% snippet 'issues/snippets/new_ticket_button.html', label=_('New ticket') %}
+            </div>
+
             {% block primary_content %}
                 {% snippet "tables/render_table.html", table=table %}
             {% endblock %}

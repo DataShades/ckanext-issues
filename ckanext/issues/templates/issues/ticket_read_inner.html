@@ -7,7 +7,7 @@
 
         {# Header card #}
         <div class="ticket-header-card">
-            <div class="ticket-id-tag">{{ _('Ticket') }} #{{ ticket.id }}</div>
+            <div class="ticket-id-tag">{{ _('Ticket #{id}').format(id=ticket.id) }}</div>
             <h1 class="ticket-subject mb-5">{{ ticket.subject }}</h1>
 
             <div class="ticket-badge-row">
@@ -75,7 +75,7 @@
                                     <span id="reply-char-count">0</span> {{ _('characters') }}
                                 </span>
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="spinner-border spinner-border-sm htmx-indicator" aria-hidden="true"></span>
+                                    <span class="issues-spinner spinner-border spinner-border-sm htmx-indicator" aria-hidden="true"></span>
                                     <button class="btn btn-primary btn-sm" type="submit">
                                         <i class="fa fa-paper-plane"></i> {{ _('Send Reply') }}
                                     </button>
@@ -133,23 +133,19 @@
                 <dd>
                     {% if h.check_access('issues_ticket_assign', {'id': ticket.id}) %}
                         <form hx-post="{{ h.url_for('issues_admin.ticket_assign', ticket_id=ticket.id) }}"
-                              hx-disabled-elt="find select, find button">
+                              hx-trigger="change"
+                              hx-disabled-elt="find select">
                             {{ h.csrf_input() }}
 
                             <label class="visually-hidden" for="assignee_id">{{ _('Assignee') }}</label>
-                            <div class="input-group">
-                                <select name="assignee_id" id="assignee_id" class="form-select">
-                                    <option value="">{{ _('Unassigned') }}</option>
-                                    {% for admin in h.issues_get_sysadmins() %}
-                                        <option value="{{ admin.value }}" {% if ticket.assignee and ticket.assignee.id == admin.value %}selected{% endif %}>
-                                            {{ admin.text }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                <button class="btn btn-outline-secondary" type="submit" title="{{ _('Assign') }}" aria-label="{{ _('Assign') }}">
-                                    <i class="fa fa-check" aria-hidden="true"></i>
-                                </button>
-                            </div>
+                            <select name="assignee_id" id="assignee_id" class="form-select">
+                                <option value="">{{ _('Unassigned') }}</option>
+                                {% for admin in h.issues_get_sysadmins() %}
+                                    <option value="{{ admin.value }}" {% if ticket.assignee and ticket.assignee.id == admin.value %}selected{% endif %}>
+                                        {{ admin.text }}
+                                    </option>
+                                {% endfor %}
+                            </select>
                         </form>
                     {% else %}
                         {% if ticket.assignee %}
@@ -192,7 +188,7 @@
                             hx-confirm="{{ _('Close this ticket?') }}"
                             hx-disabled-elt="this">
                         <i class="fa fa-lock"></i> {{ _('Close ticket') }}
-                        <span class="spinner-border spinner-border-sm htmx-indicator ms-auto" aria-hidden="true"></span>
+                        <span class="issues-spinner spinner-border spinner-border-sm htmx-indicator ms-auto" aria-hidden="true"></span>
                     </button>
                 {% else %}
                     <button class="sidebar-action-btn act-success"
@@ -200,7 +196,7 @@
                             hx-confirm="{{ _('Reopen this ticket?') }}"
                             hx-disabled-elt="this">
                         <i class="fa fa-unlock"></i> {{ _('Reopen ticket') }}
-                        <span class="spinner-border spinner-border-sm htmx-indicator ms-auto" aria-hidden="true"></span>
+                        <span class="issues-spinner spinner-border spinner-border-sm htmx-indicator ms-auto" aria-hidden="true"></span>
                     </button>
                 {% endif %}
 
@@ -210,7 +206,7 @@
                             hx-confirm="{{ _('Are you sure you want to delete this ticket? This cannot be undone.') }}"
                             hx-disabled-elt="this">
                         <i class="fa fa-trash"></i> {{ _('Delete ticket') }}
-                        <span class="spinner-border spinner-border-sm htmx-indicator ms-auto" aria-hidden="true"></span>
+                        <span class="issues-spinner spinner-border spinner-border-sm htmx-indicator ms-auto" aria-hidden="true"></span>
                     </button>
                 {% endif %}
             </div>

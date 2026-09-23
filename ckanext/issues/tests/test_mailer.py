@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import email
+from typing import TYPE_CHECKING
+
 import pytest
 
 import ckan.model as model
@@ -9,6 +12,9 @@ from ckan.tests import factories
 from ckan.tests.helpers import call_action
 
 from ckanext.issues import mailer
+
+if TYPE_CHECKING:
+    from email.message import Message
 
 TICKET = {"subject": "Help", "text": "please", "category": "Bug report"}
 
@@ -36,8 +42,17 @@ def enqueued(monkeypatch):
     return jobs
 
 
-def _bodies(mail_server):
-    return [m[3] for m in mail_server.get_smtp_messages()]
+def _parsed(mail_server) -> list[Message]:
+    return [email.message_from_string(m[3]) for m in mail_server.get_smtp_messages()]
+
+
+def _subjects(mail_server) -> list[str]:
+    return [str(msg["Subject"]) for msg in _parsed(mail_server)]
+
+
+def _bodies(mail_server) -> list[str]:
+    """Decoded text bodies (non-ASCII mails are sent base64-encoded)."""
+    return [msg.get_payload(decode=True).decode(msg.get_content_charset() or "utf-8") for msg in _parsed(mail_server)]
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db", "with_request_context", "sync_jobs")
@@ -51,7 +66,7 @@ class TestNotifications:
 
         recipients = [m[2] for m in mail_server.get_smtp_messages()]
         assert any(sysadmin["email"] in r for r in recipients)
-        assert all("New support ticket" in b for b in _bodies(mail_server))
+        assert all("New support ticket" in s for s in _subjects(mail_server))
 
     @new_ticket
     def test_new_ticket_submitted_date_is_human_readable(self, mail_server):
@@ -155,7 +170,17 @@ class TestNotifications:
         messages = mail_server.get_smtp_messages()
         assert len(messages) == 1
         assert staff["email"] in messages[0][2]
-        assert "assigned to you" in messages[0][3]
+        assert "assigned to you" in _subjects(mail_server)[0]
+
+    @ticket_update
+    def test_status_is_human_readable(self, mail_server):
+        author = factories.User()
+        ticket = call_action("issues_ticket_create", author_id=author["id"], **TICKET)
+
+        call_action("issues_ticket_update", id=ticket["id"], status="closed")
+
+        body = _bodies(mail_server)[0]
+        assert "Status: Closed" in body
 
     @ticket_update
     def test_plain_text_body_is_not_html_escaped(self, mail_server):

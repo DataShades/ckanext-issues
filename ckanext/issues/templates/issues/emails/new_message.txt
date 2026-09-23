@@ -6,10 +6,10 @@
 {% trans %}You have received a new reply on your support ticket on {{ site_title }}.{% endtrans %}
 
 ────────────────────────────────────────
-  {{ _('Ticket') }} #{{ ticket.id }}: {{ ticket.subject }}
+  {{ _('Ticket #{id}').format(id=ticket.id) }}: {{ ticket.subject }}
 ────────────────────────────────────────
   {{ _('Category') }}: {{ ticket.category }}
-  {{ _('Status') }}: {{ ticket.status }}
+  {{ _('Status') }}: {{ h.issues_status_label(ticket.status) }}
 ────────────────────────────────────────
 
 {% trans author=message.author.display_name %}New reply from {{ author }}:{% endtrans %}

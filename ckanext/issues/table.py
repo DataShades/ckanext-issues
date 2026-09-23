@@ -22,9 +22,8 @@ def _build_support_tickets_stmt() -> sql.Select:
     than raw UUIDs.  The login names are included as hidden columns so
     that formatters can build profile links without a per-row lookup.
 
-    Datetime columns are pre-formatted as ISO-style strings
-    (``YYYY-MM-DD HH24:MI``) so they sort correctly as plain strings
-    and can be filtered without a custom formatter.
+    Datetime columns stay real timestamps so they sort chronologically; the
+    formatter renders them in the display timezone, like the ticket page.
     """
     author_alias = aliased(ckan_model.User, name="author")
     assignee_alias = aliased(ckan_model.User, name="assignee")
@@ -38,8 +37,8 @@ def _build_support_tickets_stmt() -> sql.Select:
             Ticket.subject,
             Ticket.status,
             Ticket.category,
-            func.to_char(Ticket.created_at, "YYYY-MM-DD HH24:MI").label("created_at"),
-            func.to_char(Ticket.updated_at, "YYYY-MM-DD HH24:MI").label("updated_at"),
+            Ticket.created_at,
+            Ticket.updated_at,
             author_display,
             assignee_display,
             author_alias.name.label("author_login"),
@@ -51,6 +50,14 @@ def _build_support_tickets_stmt() -> sql.Select:
     )
 
 
+def _date_columns() -> list[t.ColumnDefinition]:
+    formatters = [(t.formatters.DateFormatter, {"date_format": "%Y-%m-%d %H:%M"})]
+    return [
+        t.ColumnDefinition(field="created_at", title=tk._("Created"), formatters=formatters),
+        t.ColumnDefinition(field="updated_at", title=tk._("Updated"), formatters=formatters),
+    ]
+
+
 class SupportTable(t.TableDefinition):
     def __init__(self) -> None:
         super().__init__(
@@ -58,7 +65,12 @@ class SupportTable(t.TableDefinition):
             table_template="issues/list.html",
             data_source=t.DatabaseDataSource(stmt=_build_support_tickets_stmt()),
             columns=[
-                t.ColumnDefinition(field="subject", title=tk._("Subject")),
+                t.ColumnDefinition(
+                    field="subject",
+                    title=tk._("Subject"),
+                    formatters=[(sf.TicketLinkFormatter, {})],
+                    tabulator_formatter="html",
+                ),
                 t.ColumnDefinition(
                     field="status",
                     title=tk._("Status"),
@@ -78,8 +90,7 @@ class SupportTable(t.TableDefinition):
                     tabulator_formatter="html",
                 ),
                 t.ColumnDefinition(field="category", title=tk._("Category")),
-                t.ColumnDefinition(field="created_at", title=tk._("Created At")),
-                t.ColumnDefinition(field="updated_at", title=tk._("Updated At")),
+                *_date_columns(),
             ],
             row_actions=[
                 t.RowActionDefinition(
@@ -113,10 +124,11 @@ class SupportTable(t.TableDefinition):
                     callback=self.bulk_reopen,
                 ),
                 t.BulkActionDefinition(
-                    action="remove_tickets",
-                    label=tk._("Remove selected tickets"),
+                    action="delete_tickets",
+                    label=tk._("Delete selected tickets"),
                     icon="fa fa-trash",
-                    callback=self.bulk_remove,
+                    callback=self.bulk_delete,
+                    with_confirmation=True,
                 ),
             ],
         )
@@ -145,8 +157,8 @@ class SupportTable(t.TableDefinition):
             tk._("Ticket(s) reopened."),
         )
 
-    def bulk_remove(self, rows: list[t.Row]) -> t.ActionHandlerResult:
-        return _apply_to_rows(rows, "issues_ticket_delete", {}, tk._("Ticket(s) removed."))
+    def bulk_delete(self, rows: list[t.Row]) -> t.ActionHandlerResult:
+        return _apply_to_rows(rows, "issues_ticket_delete", {}, tk._("Ticket(s) deleted."))
 
 
 def _apply_to_rows(
@@ -190,8 +202,8 @@ class UserTicketTable(t.TableDefinition):
                 Ticket.subject,
                 Ticket.status,
                 Ticket.category,
-                func.to_char(Ticket.created_at, "YYYY-MM-DD HH24:MI").label("created_at"),
-                func.to_char(Ticket.updated_at, "YYYY-MM-DD HH24:MI").label("updated_at"),
+                Ticket.created_at,
+                Ticket.updated_at,
             )
             .where(Ticket.author_id == user_id)
             .order_by(Ticket.updated_at.desc())
@@ -201,8 +213,14 @@ class UserTicketTable(t.TableDefinition):
             name="my_issues_tickets",
             table_template="issues/my_tickets.html",
             data_source=t.DatabaseDataSource(stmt=stmt),
+            placeholder=tk._("You haven't created any support tickets yet."),
             columns=[
-                t.ColumnDefinition(field="subject", title=tk._("Subject")),
+                t.ColumnDefinition(
+                    field="subject",
+                    title=tk._("Subject"),
+                    formatters=[(sf.TicketLinkFormatter, {})],
+                    tabulator_formatter="html",
+                ),
                 t.ColumnDefinition(
                     field="status",
                     title=tk._("Status"),
@@ -210,8 +228,7 @@ class UserTicketTable(t.TableDefinition):
                     tabulator_formatter="html",
                 ),
                 t.ColumnDefinition(field="category", title=tk._("Category")),
-                t.ColumnDefinition(field="created_at", title=tk._("Created At")),
-                t.ColumnDefinition(field="updated_at", title=tk._("Updated At")),
+                *_date_columns(),
             ],
             row_actions=[
                 t.RowActionDefinition(

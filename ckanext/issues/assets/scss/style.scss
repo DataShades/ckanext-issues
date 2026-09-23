@@ -11,9 +11,11 @@
 //    2. ticket_read — ticket detail layout + components
 //    3. message    — chat-bubble message cards
 //    4. sidebar    — right-hand metadata + actions panel
+//    5. indicator  — htmx pending spinners (also used by the modal)
 // ==========================================================
 
 @use 'variables';
 @use 'ticket_read';
 @use 'message';
 @use 'sidebar';
+@use 'indicator';

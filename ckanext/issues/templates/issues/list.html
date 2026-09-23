@@ -1,5 +1,7 @@
 {% extends 'page.html' %}
 
+{% block subtitle %}{{ _('Support tickets') }}{% endblock %}
+
 {% block breadcrumb_content %}
     <li class="active">{% link_for _("Support tickets"), request.endpoint %}</li>
 {% endblock breadcrumb_content %}
@@ -9,7 +11,7 @@
 {% block primary %}
     <div class="primary col-md-12" role="main">
         <div class="pt-2">
-            <h1>{{ _("Tickets") }}</h1>
+            <h1>{{ _("Support tickets") }}</h1>
             {% block primary_content %}
                 {% snippet "tables/render_table.html", table=table %}
             {% endblock %}

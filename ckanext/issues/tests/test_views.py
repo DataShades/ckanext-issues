@@ -308,6 +308,24 @@ class TestTicketCreationAndModal:
 
         assert resp.status_code == 200
 
+    def test_pages_set_the_browser_title(self, app, ticket, sysadmin):
+        author = _auth(ticket["author"]["id"])
+
+        my_tickets = app.get(tk.url_for("issues.my_tickets"), headers=author).body
+        ticket_page = app.get(tk.url_for("issues.ticket_read", ticket_id=ticket["id"]), headers=author).body
+        admin_list = app.get(tk.url_for("issues_admin.list"), headers=_auth(sysadmin["id"])).body
+
+        assert "<title>My tickets" in my_tickets
+        assert f"<title>{ticket['subject']}" in ticket_page
+        assert f"Ticket #{ticket['id']}" in ticket_page
+        assert "<title>Support tickets" in admin_list
+
+    def test_my_tickets_has_a_heading_and_new_ticket_button(self, app, user):
+        body = app.get(tk.url_for("issues.my_tickets"), headers=_auth(user["id"])).body
+
+        assert ">My tickets</h1>" in body
+        assert "New ticket" in body
+
     def test_my_tickets_page_renders(self, app, ticket):
         resp = app.get(
             tk.url_for("issues.my_tickets"),
@@ -320,10 +338,10 @@ class TestTicketCreationAndModal:
 XHR = {"X-Requested-With": "XMLHttpRequest"}
 
 
-def _table_subjects(app, endpoint, user_id):
+def _table_rows(app, endpoint, user_id):
     resp = app.get(tk.url_for(endpoint), headers=_auth(user_id, XHR))
     assert resp.status_code == 200
-    return {row["subject"] for row in resp.json["data"]}
+    return {row["id"]: row for row in resp.json["data"]}
 
 
 class TestTableContent:
@@ -331,36 +349,47 @@ class TestTableContent:
         own = ticket_factory(author_id=user["id"])
         other = ticket_factory()
 
-        subjects = _table_subjects(app, "issues.my_tickets", user["id"])
+        rows = _table_rows(app, "issues.my_tickets", user["id"])
 
-        assert own["subject"] in subjects
-        assert other["subject"] not in subjects
+        assert own["id"] in rows
+        assert other["id"] not in rows
 
     def test_admin_list_shows_all_tickets_with_author_names(self, app, ticket_factory, sysadmin):
         first = ticket_factory()
         second = ticket_factory()
 
-        resp = app.get(tk.url_for("issues_admin.list"), headers=_auth(sysadmin["id"], XHR))
-        rows = {row["subject"]: row for row in resp.json["data"]}
+        rows = _table_rows(app, "issues_admin.list", sysadmin["id"])
 
-        assert {first["subject"], second["subject"]} <= set(rows)
-        assert first["author"]["name"] in rows[first["subject"]]["author_name"]
+        assert {first["id"], second["id"]} <= set(rows)
+        assert first["author"]["name"] in rows[first["id"]]["author_name"]
 
     def test_admin_list_formats_status_and_user_links(self, app, ticket, sysadmin):
         call_action("issues_ticket_assign", id=ticket["id"], assignee_id=sysadmin["id"])
 
-        resp = app.get(tk.url_for("issues_admin.list"), headers=_auth(sysadmin["id"], XHR))
-        row = next(r for r in resp.json["data"] if r["subject"] == ticket["subject"])
+        row = _table_rows(app, "issues_admin.list", sysadmin["id"])[ticket["id"]]
 
         assert 'class="badge bg-success text-white">Open<' in row["status"]
         assert tk.url_for("user.read", id=ticket["author"]["name"]) in row["author_name"]
         assert tk.url_for("user.read", id=sysadmin["name"]) in row["assignee_name"]
 
     def test_admin_list_unassigned_ticket_has_empty_assignee(self, app, ticket, sysadmin):
-        resp = app.get(tk.url_for("issues_admin.list"), headers=_auth(sysadmin["id"], XHR))
-        row = next(r for r in resp.json["data"] if r["subject"] == ticket["subject"])
+        row = _table_rows(app, "issues_admin.list", sysadmin["id"])[ticket["id"]]
 
         assert not row["assignee_name"]
+
+    @pytest.mark.parametrize("endpoint", ["issues_admin.list", "issues.my_tickets"])
+    def test_subject_links_to_the_ticket(self, app, ticket, sysadmin, endpoint):
+        user_id = sysadmin["id"] if endpoint == "issues_admin.list" else ticket["author"]["id"]
+        row = _table_rows(app, endpoint, user_id)[ticket["id"]]
+
+        assert tk.url_for("issues.ticket_read", ticket_id=ticket["id"]) in row["subject"]
+        assert ticket["subject"] in row["subject"]
+
+    def test_dates_use_the_display_timezone(self, app, ticket, sysadmin):
+        row = _table_rows(app, "issues_admin.list", sysadmin["id"])[ticket["id"]]
+
+        expected = tk.h.render_datetime(ticket["created_at"], date_format="%Y-%m-%d %H:%M")
+        assert row["created_at"] == expected
 
 
 class TestMissingTickets:
@@ -374,7 +403,7 @@ class TestMissingTickets:
         assert resp.headers.get("HX-Redirect") == tk.url_for("issues_admin.list")
 
     @pytest.mark.usefixtures("with_request_context")
-    @pytest.mark.parametrize("bulk", ["bulk_close", "bulk_reopen", "bulk_remove"])
+    @pytest.mark.parametrize("bulk", ["bulk_close", "bulk_reopen", "bulk_delete"])
     def test_bulk_actions_skip_missing_tickets(self, bulk, ticket):
         rows = [{"id": 999999}, {"id": ticket["id"]}]
 
@@ -383,7 +412,7 @@ class TestMissingTickets:
         assert result["success"] is False
         assert "999999" in result["error"]
         # the existing ticket was still processed
-        if bulk == "bulk_remove":
+        if bulk == "bulk_delete":
             assert Ticket.get(ticket["id"]) is None
         elif bulk == "bulk_close":
             assert Ticket.get(ticket["id"]).status == Ticket.Status.closed

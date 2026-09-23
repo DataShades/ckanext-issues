@@ -1,0 +1,11 @@
+// htmx only fades .htmx-indicator out (opacity/visibility), so an idle
+// spinner still takes up space. Keep ours out of the layout until the
+// request is in flight (htmx puts .htmx-request on the requesting element).
+.issues-spinner.htmx-indicator {
+  display: none;
+}
+
+.htmx-request .issues-spinner.htmx-indicator,
+.htmx-request.issues-spinner.htmx-indicator {
+  display: inline-block;
+}

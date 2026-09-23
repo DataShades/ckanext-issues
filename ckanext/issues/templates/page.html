@@ -1,5 +1,13 @@
 {% ckan_extends %}
 
+{% block styles %}
+    {{ super() }}
+    {# The ticket modal (below) is on every page and needs the spinner styles. #}
+    {% if current_user.is_authenticated %}
+        {% asset 'issues/issues-css' %}
+    {% endif %}
+{% endblock %}
+
 {% block scripts %}
     {% if current_user.is_authenticated %}
         {% snippet 'issues/ticket_modal.html' %}

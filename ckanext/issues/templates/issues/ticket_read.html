@@ -1,5 +1,7 @@
 {% extends 'page.html' %}
 
+{% block subtitle %}{{ ticket.subject }} {{ g.template_title_delimiter }} {{ _('Ticket #{id}').format(id=ticket.id) }}{% endblock %}
+
 {% block breadcrumb_content %}
     {% if h.check_access('sysadmin') %}
         <li>{% link_for _("Support tickets"), named_route='issues_admin.list' %}</li>
@@ -7,7 +9,7 @@
         <li>{% link_for _("My tickets"), named_route='issues.my_tickets' %}</li>
     {% endif %}
     <li class="active">
-        {% link_for "Ticket #" ~ ticket.id, named_route='issues.ticket_read', ticket_id=ticket.id %}
+        {% link_for _("Ticket #{id}").format(id=ticket.id), named_route='issues.ticket_read', ticket_id=ticket.id %}
     </li>
 {% endblock breadcrumb_content %}
 

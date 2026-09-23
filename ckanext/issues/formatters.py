@@ -22,8 +22,16 @@ class StatusFormatter(formatters.BaseFormatter):
         if not badge_class:
             return ""
 
-        label = tk._("Open") if value == Ticket.Status.opened else tk._("Closed")
+        label = tk.h.issues_status_label(value)
         return tk.literal(f'<span class="badge {badge_class} text-white">{escape(label)}</span>')
+
+
+class TicketLinkFormatter(formatters.BaseFormatter):
+    """Render the ticket subject as a link to the ticket page."""
+
+    def format(self, value: Value, options: Options) -> FormatterResult:  # noqa: ARG002
+        url = tk.h.url_for("issues.ticket_read", ticket_id=self.initial_row["id"])
+        return tk.literal(f'<a href="{escape(url)}">{escape(value)}</a>')
 
 
 class UserNameLinkFormatter(formatters.BaseFormatter):

@@ -1,0 +1,19 @@
+{#
+Opens the ticket-creation modal (rendered for every logged-in user by page.html).
+
+label - visible text; omit for an icon-only button (the label is then used as aria-label)
+classes - button classes
+#}
+{% set text = _('New support ticket') %}
+<button
+    type="button"
+    class="{{ classes or 'btn btn-primary' }}"
+    {% if not label %}title="{{ text }}" aria-label="{{ text }}"{% endif %}
+    data-bs-toggle="modal"
+    data-bs-target="#issues-ticket-modal"
+    hx-get="{{ h.url_for('issues.init_modal') }}"
+    hx-target=".issues-ticket-modal-body"
+    hx-trigger="click">
+    <i class="fa {{ icon or 'fa-plus' }}" aria-hidden="true"></i>
+    {%- if label %} {{ label }}{% endif %}
+</button>

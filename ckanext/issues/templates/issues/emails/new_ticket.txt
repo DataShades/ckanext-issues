@@ -6,10 +6,10 @@
 {% trans %}A new support ticket has been submitted on {{ site_title }} and requires your attention.{% endtrans %}
 
 ────────────────────────────────────────
-  {{ _('Ticket') }} #{{ ticket.id }}: {{ ticket.subject }}
+  {{ _('Ticket #{id}').format(id=ticket.id) }}: {{ ticket.subject }}
 ────────────────────────────────────────
   {{ _('Category') }}: {{ ticket.category }}
-  {{ _('Status') }}: {{ ticket.status }}
+  {{ _('Status') }}: {{ h.issues_status_label(ticket.status) }}
   {{ _('Submitted') }}: {{ h.render_datetime(ticket.created_at, with_hours=True) }}
   {{ _('Author') }}: {{ ticket.author.display_name }}
 ────────────────────────────────────────
