@@ -8,6 +8,7 @@ import ckan.plugins.toolkit as tk
 from ckan.tests.helpers import call_action
 
 from ckanext.issues.model import Ticket
+from ckanext.issues.table import SupportTable
 
 pytestmark = pytest.mark.usefixtures("with_plugins", "clean_db")
 
@@ -360,6 +361,32 @@ class TestTableContent:
         row = next(r for r in resp.json["data"] if r["subject"] == ticket["subject"])
 
         assert not row["assignee_name"]
+
+
+class TestMissingTickets:
+    def test_deleting_a_missing_ticket_redirects_with_an_error(self, app, sysadmin):
+        resp = app.post(
+            tk.url_for("issues_admin.ticket_delete", ticket_id=999999),
+            headers=_auth(sysadmin["id"], HX),
+        )
+
+        assert resp.status_code == 200
+        assert resp.headers.get("HX-Redirect") == tk.url_for("issues_admin.list")
+
+    @pytest.mark.usefixtures("with_request_context")
+    @pytest.mark.parametrize("bulk", ["bulk_close", "bulk_reopen", "bulk_remove"])
+    def test_bulk_actions_skip_missing_tickets(self, bulk, ticket):
+        rows = [{"id": 999999}, {"id": ticket["id"]}]
+
+        result = getattr(SupportTable(), bulk)(rows)
+
+        assert result["success"] is False
+        assert "999999" in result["error"]
+        # the existing ticket was still processed
+        if bulk == "bulk_remove":
+            assert Ticket.get(ticket["id"]) is None
+        elif bulk == "bulk_close":
+            assert Ticket.get(ticket["id"]).status == Ticket.Status.closed
 
 
 class TestAdminBlueprint:

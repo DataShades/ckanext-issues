@@ -15,14 +15,14 @@ def ticket_create(
     not_missing: types.Validator,
     not_empty: types.Validator,
     unicode_safe: types.Validator,
-    user_id_or_name_exists: types.Validator,
+    convert_user_name_or_id_to_id: types.Validator,
     issues_category_validator: types.Validator,
 ) -> types.Schema:
     return {
         "subject": [not_empty, unicode_safe],
         "category": [not_missing, unicode_safe, issues_category_validator],
         "text": [not_empty, unicode_safe],
-        "author_id": [not_missing, unicode_safe, user_id_or_name_exists],
+        "author_id": [not_missing, unicode_safe, convert_user_name_or_id_to_id],
     }
 
 
@@ -95,12 +95,12 @@ def message_create(
     not_missing: types.Validator,
     not_empty: types.Validator,
     unicode_safe: types.Validator,
-    user_id_or_name_exists: types.Validator,
+    convert_user_name_or_id_to_id: types.Validator,
     ticket_id_exists: types.Validator,
 ) -> types.Schema:
     return {
         "ticket_id": [not_missing, unicode_safe, ticket_id_exists],
-        "author_id": [not_missing, unicode_safe, user_id_or_name_exists],
+        "author_id": [not_missing, unicode_safe, convert_user_name_or_id_to_id],
         "content": [not_empty, unicode_safe],
     }
 

@@ -262,12 +262,16 @@ class TicketAssignView(MethodView):
 
 class TicketDeleteView(MethodView):
     def post(self, ticket_id: str) -> Response:
-        tk.get_action("issues_ticket_delete")(
-            {"ignore_auth": True},
-            {"id": ticket_id},
-        )
-
-        tk.h.flash_success(tk._("The ticket has been deleted"))
+        try:
+            tk.get_action("issues_ticket_delete")(
+                {"user": tk.current_user.name},
+                {"id": ticket_id},
+            )
+        except (tk.ObjectNotFound, tk.ValidationError, tk.NotAuthorized) as e:
+            # The ticket page is gone (or never existed); go back to the list.
+            tk.h.flash_error(_error_message(e))
+        else:
+            tk.h.flash_success(tk._("The ticket has been deleted"))
 
         redirect_url: str = tk.url_for("issues_admin.list")
 

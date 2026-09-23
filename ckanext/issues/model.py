@@ -59,7 +59,7 @@ class Ticket(tk.BaseModel):
         sa.Column("category", sa.Text),
         sa.Column("created_at", sa.DateTime, nullable=False, default=datetime.utcnow),
         sa.Column("updated_at", sa.DateTime, nullable=False, default=datetime.utcnow),
-        sa.Column("author_id", sa.Text, sa.ForeignKey("user.id"), nullable=False),
+        sa.Column("author_id", sa.Text, sa.ForeignKey("user.id", ondelete="CASCADE"), nullable=False),
         sa.Column(
             "assignee_id",
             sa.Text,
@@ -156,10 +156,10 @@ class TicketMessage(tk.BaseModel):
         sa.Column(
             "ticket_id",
             sa.Integer,
-            sa.ForeignKey("issues_ticket.id"),
+            sa.ForeignKey("issues_ticket.id", ondelete="CASCADE"),
             nullable=False,
         ),
-        sa.Column("author_id", sa.Text, sa.ForeignKey("user.id"), nullable=False),
+        sa.Column("author_id", sa.Text, sa.ForeignKey("user.id", ondelete="CASCADE"), nullable=False),
         sa.Column("content", sa.Text, nullable=False),
         sa.Column("created_at", sa.DateTime, nullable=False, default=datetime.utcnow),
         sa.Column("updated_at", sa.DateTime, nullable=True),

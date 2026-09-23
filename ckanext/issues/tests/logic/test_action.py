@@ -43,6 +43,28 @@ class TestTicketCreate:
 
         assert ticket["category"] == "general"
 
+    def test_author_name_is_stored_as_id(self, user):
+        ticket: DictizedTicket = call_action(
+            "issues_ticket_create",
+            subject="Test Subject",
+            text="Test text",
+            category="Data request",
+            author_id=user["name"],
+        )
+
+        assert ticket["author"]["id"] == user["id"]
+        assert Ticket.get(ticket["id"]).author_id == user["id"]
+
+    def test_message_author_name_is_stored_as_id(self, ticket, sysadmin):
+        message = call_action(
+            "issues_message_create",
+            ticket_id=ticket["id"],
+            author_id=sysadmin["name"],
+            content="reply",
+        )
+
+        assert message["author"]["id"] == sysadmin["id"]
+
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestOpenTicketLimit:

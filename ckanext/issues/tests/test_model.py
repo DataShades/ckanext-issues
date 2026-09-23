@@ -38,6 +38,26 @@ class TestAssigneeDeletion:
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
+class TestMessageAuthorDeletion:
+    def test_purging_a_replier_removes_their_messages_but_keeps_the_ticket(self, ticket):
+        staff = factories.Sysadmin()
+        call_action(
+            "issues_message_create",
+            ticket_id=ticket["id"],
+            author_id=staff["id"],
+            content="staff reply",
+        )
+
+        model.Session.delete(model.User.get(staff["id"]))
+        model.Session.commit()
+        model.Session.expire_all()
+
+        t = Ticket.get(ticket["id"])
+        assert t is not None
+        assert t.messages == []
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestActiveSysadmins:
     def test_only_active_sysadmins_ordered_by_name(self):
         b = factories.Sysadmin(name="b-admin")

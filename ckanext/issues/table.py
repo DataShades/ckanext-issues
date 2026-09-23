@@ -130,25 +130,50 @@ class SupportTable(t.TableDefinition):
         return t.ActionHandlerResult(success=True)
 
     def bulk_close(self, rows: list[t.Row]) -> t.ActionHandlerResult:
-        for row in rows:
-            tk.get_action("issues_ticket_update")(
-                {"ignore_auth": True},
-                {"id": row["id"], "status": Ticket.Status.closed},
-            )
-        return t.ActionHandlerResult(success=True, message=tk._("Ticket(s) closed."))
+        return _apply_to_rows(
+            rows,
+            "issues_ticket_update",
+            {"status": Ticket.Status.closed},
+            tk._("Ticket(s) closed."),
+        )
 
     def bulk_reopen(self, rows: list[t.Row]) -> t.ActionHandlerResult:
-        for row in rows:
-            tk.get_action("issues_ticket_update")(
-                {"ignore_auth": True},
-                {"id": row["id"], "status": Ticket.Status.opened},
-            )
-        return t.ActionHandlerResult(success=True, message=tk._("Ticket(s) reopened."))
+        return _apply_to_rows(
+            rows,
+            "issues_ticket_update",
+            {"status": Ticket.Status.opened},
+            tk._("Ticket(s) reopened."),
+        )
 
     def bulk_remove(self, rows: list[t.Row]) -> t.ActionHandlerResult:
-        for row in rows:
-            tk.get_action("issues_ticket_delete")({"ignore_auth": True}, {"id": row["id"]})
-        return t.ActionHandlerResult(success=True, message=tk._("Ticket(s) removed."))
+        return _apply_to_rows(rows, "issues_ticket_delete", {}, tk._("Ticket(s) removed."))
+
+
+def _apply_to_rows(
+    rows: list[t.Row],
+    action: str,
+    extra: dict[str, str],
+    success_message: str,
+) -> t.ActionHandlerResult:
+    """Run ``action`` for every selected ticket, skipping ones that are gone.
+
+    Each call commits on its own, so tickets processed before a failure stay
+    processed; the failed ids are reported back instead of raising a 500.
+    """
+    failed = []
+    for row in rows:
+        try:
+            tk.get_action(action)({"ignore_auth": True}, {"id": row["id"], **extra})
+        except (tk.ValidationError, tk.ObjectNotFound):  # noqa: PERF203 - per-row errors are the point
+            failed.append(str(row["id"]))
+
+    if failed:
+        return t.ActionHandlerResult(
+            success=False,
+            error=tk._("Some tickets could not be processed: {ids}").format(ids=", ".join(failed)),
+        )
+
+    return t.ActionHandlerResult(success=True, message=success_message)
 
 
 class UserTicketTable(t.TableDefinition):

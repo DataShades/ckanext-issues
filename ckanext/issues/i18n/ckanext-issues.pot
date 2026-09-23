@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: ckanext-issues 0.1.2\n"
+"Project-Id-Version: ckanext-issues 0.1.4\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-23 16:25+0300\n"
+"POT-Creation-Date: 2026-09-23 16:39+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,18 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+#: ckanext/issues/formatters.py:25
+#: ckanext/issues/templates/issues/ticket_read_inner.html:16
+#: ckanext/issues/templates/issues/ticket_read_inner.html:113
+msgid "Open"
+msgstr ""
+
+#: ckanext/issues/formatters.py:25
+#: ckanext/issues/templates/issues/ticket_read_inner.html:20
+#: ckanext/issues/templates/issues/ticket_read_inner.html:117
+msgid "Closed"
+msgstr ""
 
 #: ckanext/issues/mailer.py:45
 #, python-brace-format
@@ -32,12 +44,12 @@ msgstr ""
 msgid "Ticket updated: {subject}"
 msgstr ""
 
-#: ckanext/issues/table.py:61 ckanext/issues/table.py:181
+#: ckanext/issues/table.py:61 ckanext/issues/table.py:205
 #: ckanext/issues/templates/issues/ticket_modal_form.html:11
 msgid "Subject"
 msgstr ""
 
-#: ckanext/issues/table.py:64 ckanext/issues/table.py:184
+#: ckanext/issues/table.py:64 ckanext/issues/table.py:208
 #: ckanext/issues/templates/issues/ticket_read_inner.html:109
 msgid "Status"
 msgstr ""
@@ -53,21 +65,21 @@ msgstr ""
 msgid "Assignee"
 msgstr ""
 
-#: ckanext/issues/table.py:80 ckanext/issues/table.py:188
+#: ckanext/issues/table.py:80 ckanext/issues/table.py:212
 #: ckanext/issues/templates/issues/ticket_modal_form.html:12
 #: ckanext/issues/templates/issues/ticket_read_inner.html:122
 msgid "Category"
 msgstr ""
 
-#: ckanext/issues/table.py:81 ckanext/issues/table.py:189
+#: ckanext/issues/table.py:81 ckanext/issues/table.py:213
 msgid "Created At"
 msgstr ""
 
-#: ckanext/issues/table.py:82 ckanext/issues/table.py:190
+#: ckanext/issues/table.py:82 ckanext/issues/table.py:214
 msgid "Updated At"
 msgstr ""
 
-#: ckanext/issues/table.py:87 ckanext/issues/table.py:195
+#: ckanext/issues/table.py:87 ckanext/issues/table.py:219
 msgid "View"
 msgstr ""
 
@@ -91,23 +103,24 @@ msgstr ""
 msgid "Error deleting ticket."
 msgstr ""
 
-#: ckanext/issues/table.py:138
+#: ckanext/issues/table.py:137
 msgid "Ticket(s) closed."
 msgstr ""
 
-#: ckanext/issues/table.py:146
+#: ckanext/issues/table.py:145
 msgid "Ticket(s) reopened."
 msgstr ""
 
-#: ckanext/issues/table.py:151
+#: ckanext/issues/table.py:149
 msgid "Ticket(s) removed."
 msgstr ""
 
-#: ckanext/issues/table.py:161
-msgid "User not found"
+#: ckanext/issues/table.py:173
+#, python-brace-format
+msgid "Some tickets could not be processed: {ids}"
 msgstr ""
 
-#: ckanext/issues/table.py:209
+#: ckanext/issues/table.py:233
 msgid "You are not authorized to view this table"
 msgstr ""
 
@@ -148,7 +161,7 @@ msgstr ""
 msgid "You are not allowed to view this ticket"
 msgstr ""
 
-#: ckanext/issues/views.py:270
+#: ckanext/issues/views.py:274
 msgid "The ticket has been deleted"
 msgstr ""
 
@@ -253,16 +266,6 @@ msgstr ""
 
 #: ckanext/issues/templates/issues/ticket_read_inner.html:10
 msgid "Ticket"
-msgstr ""
-
-#: ckanext/issues/templates/issues/ticket_read_inner.html:16
-#: ckanext/issues/templates/issues/ticket_read_inner.html:113
-msgid "Open"
-msgstr ""
-
-#: ckanext/issues/templates/issues/ticket_read_inner.html:20
-#: ckanext/issues/templates/issues/ticket_read_inner.html:117
-msgid "Closed"
 msgstr ""
 
 #: ckanext/issues/templates/issues/ticket_read_inner.html:42
