@@ -28,6 +28,15 @@ ticket_updated = tk.signals.ckanext.signal(
 )
 
 
+# Fired after a ticket is assigned to someone (not on unassign).
+# sender  : None
+# kwargs  : ticket (DictizedTicket) — ``ticket["assignee"]`` is the new assignee
+ticket_assigned = tk.signals.ckanext.signal(
+    "issues:ticket_assigned",
+    "Fired when a support ticket is assigned",
+)
+
+
 # Fired after a ticket (and its messages) is deleted.
 # sender  : None
 # kwargs  : ticket (DictizedTicket) — the ticket as it was before deletion

@@ -1,27 +1,29 @@
-Dear {{ recipient_name }},
+{#- Plain-text mail: CKAN's Jinja env autoescapes every template, which would
+    turn "&" into "&amp;" here. -#}
+{% autoescape false -%}
+{% trans name=recipient_name %}Dear {{ name }},{% endtrans %}
 
-A new support ticket has been submitted on {{ site_title }} and requires your attention.
+{% trans %}A new support ticket has been submitted on {{ site_title }} and requires your attention.{% endtrans %}
 
 ────────────────────────────────────────
-  Ticket #{{ ticket.id }}: {{ ticket.subject }}
+  {{ _('Ticket') }} #{{ ticket.id }}: {{ ticket.subject }}
 ────────────────────────────────────────
-  Category : {{ ticket.category }}
-  Status   : {{ ticket.status }}
-  Submitted: {{ ticket.created_at }}
-  Author   : {{ ticket.author.display_name | default(ticket.author.name) }}
-
-{% if ticket.assignee %}  Assignee : {{ ticket.assignee.display_name | default(ticket.assignee.name) }}
-{% endif %}────────────────────────────────────────
+  {{ _('Category') }}: {{ ticket.category }}
+  {{ _('Status') }}: {{ ticket.status }}
+  {{ _('Submitted') }}: {{ ticket.created_at }}
+  {{ _('Author') }}: {{ ticket.author.display_name }}
+────────────────────────────────────────
 
 {{ ticket.text }}
 
 ────────────────────────────────────────
 
-To view and respond to this ticket, visit:
+{{ _('To view and respond to this ticket, visit:') }}
 
   {{ ticket_url }}
 
 --
 {{ site_title }} ({{ site_url }})
 
-This is an automated notification. Do not reply to this email.
+{{ _('This is an automated notification. Do not reply to this email.') }}
+{% endautoescape %}

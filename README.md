@@ -17,7 +17,10 @@ It provides:
   actions (close / reopen / remove), per-ticket assignment and a threaded
   conversation view.
 * Email notifications (new ticket → sysadmins, new reply / status change →
-  ticket author), each toggleable via config.
+  ticket author, assignment → assignee), each toggleable via config. Mails
+  are sent from a background job, so a CKAN worker must be running
+  (`ckan jobs worker`). Set `ckanext.issues.mail_queue` to send them from a
+  dedicated queue (`ckan jobs worker <queue>`).
 
 TODO:
 * Add file uploads to messages.
@@ -32,7 +35,8 @@ Compatibility with core CKAN versions:
 | 2.11            | yes           |
 | 2.12            | yes           |
 
-Requires `ckanext-tables` to be installed and enabled.
+Requires `ckanext-tables` to be installed and enabled, and a running CKAN
+background worker (`ckan jobs worker`, i.e. Redis) for email notifications.
 
 ## Installation
 

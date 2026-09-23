@@ -3,22 +3,21 @@
 {% autoescape false -%}
 {% trans name=recipient_name %}Dear {{ name }},{% endtrans %}
 
-{% trans %}You have received a new reply on your support ticket on {{ site_title }}.{% endtrans %}
+{% trans %}A support ticket on {{ site_title }} has been assigned to you.{% endtrans %}
 
 ────────────────────────────────────────
   {{ _('Ticket') }} #{{ ticket.id }}: {{ ticket.subject }}
 ────────────────────────────────────────
   {{ _('Category') }}: {{ ticket.category }}
   {{ _('Status') }}: {{ ticket.status }}
+  {{ _('Author') }}: {{ ticket.author.display_name }}
 ────────────────────────────────────────
 
-{% trans author=message.author.display_name %}New reply from {{ author }}:{% endtrans %}
-
-{{ message.content }}
+{{ ticket.text }}
 
 ────────────────────────────────────────
 
-{{ _('To view the full conversation and reply, visit:') }}
+{{ _('To view and respond to this ticket, visit:') }}
 
   {{ ticket_url }}
 

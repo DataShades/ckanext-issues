@@ -8,6 +8,10 @@ DEF_TICKET_CATEGORIES = ["Feature request", "Data request", "Bug report", "Other
 CONF_NOTIFY_NEW_TICKET = "ckanext.issues.notify_on_new_ticket"
 CONF_NOTIFY_NEW_MESSAGE = "ckanext.issues.notify_on_new_message"
 CONF_NOTIFY_TICKET_UPDATE = "ckanext.issues.notify_on_ticket_update"
+CONF_NOTIFY_TICKET_ASSIGN = "ckanext.issues.notify_on_ticket_assign"
+
+CONF_MAIL_QUEUE = "ckanext.issues.mail_queue"
+DEF_MAIL_QUEUE = "default"
 
 CONF_MAX_OPEN_TICKETS = "ckanext.issues.max_open_tickets_per_user"
 DEF_MAX_OPEN_TICKETS = 5
@@ -48,3 +52,12 @@ def get_notify_on_new_message() -> bool:
 
 def get_notify_on_ticket_update() -> bool:
     return tk.asbool(tk.config.get(CONF_NOTIFY_TICKET_UPDATE, True))
+
+
+def get_notify_on_ticket_assign() -> bool:
+    return tk.asbool(tk.config.get(CONF_NOTIFY_TICKET_ASSIGN, True))
+
+
+def get_mail_queue() -> str:
+    """Background-job queue that notification mails are enqueued on."""
+    return tk.config.get(CONF_MAIL_QUEUE) or DEF_MAIL_QUEUE

@@ -461,6 +461,15 @@ class TestTicketAssign:
         with pytest.raises(tk.ValidationError, match="active sysadmin"):
             call_action("issues_ticket_assign", id=ticket["id"], assignee_id=user["id"])
 
+    def test_assign_after_the_ticket_was_loaded_in_the_same_session(self, ticket, sysadmin):
+        # Loading the ticket caches ``assignee`` (None) on the instance.
+        call_action("issues_ticket_show", id=ticket["id"])
+
+        result = call_action("issues_ticket_assign", id=ticket["id"], assignee_id=sysadmin["id"])
+
+        assert result["assignee"]["id"] == sysadmin["id"]
+        assert call_action("issues_ticket_show", id=ticket["id"])["assignee"]["id"] == sysadmin["id"]
+
     def test_empty_assignee_unassigns(self, ticket, sysadmin):
         call_action("issues_ticket_assign", id=ticket["id"], assignee_id=sysadmin["id"])
         result = call_action("issues_ticket_assign", id=ticket["id"], assignee_id="")

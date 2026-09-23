@@ -54,10 +54,11 @@ class TestMaxOpenTickets:
 @pytest.mark.usefixtures("with_plugins")
 class TestNotificationFlags:
     def test_off_for_the_test_suite_by_default(self):
-        # test.ini disables all three notification flags for the whole suite.
+        # test.ini disables all notification flags for the whole suite.
         assert not config.get_notify_on_new_ticket()
         assert not config.get_notify_on_new_message()
         assert not config.get_notify_on_ticket_update()
+        assert not config.get_notify_on_ticket_assign()
 
     @pytest.mark.ckan_config("ckanext.issues.notify_on_new_ticket", "true")
     def test_new_ticket_flag_can_be_enabled(self):
@@ -70,3 +71,7 @@ class TestNotificationFlags:
     @pytest.mark.ckan_config("ckanext.issues.notify_on_ticket_update", "1")
     def test_ticket_update_flag_accepts_truthy_strings(self):
         assert config.get_notify_on_ticket_update()
+
+    @pytest.mark.ckan_config("ckanext.issues.notify_on_ticket_assign", "true")
+    def test_ticket_assign_flag_can_be_enabled(self):
+        assert config.get_notify_on_ticket_assign()

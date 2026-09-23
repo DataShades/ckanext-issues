@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: ckanext-issues 0.1.4\n"
+"Project-Id-Version: ckanext-issues 0.1.5\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-23 16:39+0300\n"
+"POT-Creation-Date: 2026-09-23 17:02+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,19 +29,24 @@ msgstr ""
 msgid "Closed"
 msgstr ""
 
-#: ckanext/issues/mailer.py:45
+#: ckanext/issues/mailer.py:82
 #, python-brace-format
 msgid "New support ticket: {subject}"
 msgstr ""
 
-#: ckanext/issues/mailer.py:85
+#: ckanext/issues/mailer.py:92
 #, python-brace-format
 msgid "New reply on your ticket: {subject}"
 msgstr ""
 
-#: ckanext/issues/mailer.py:119
+#: ckanext/issues/mailer.py:102
 #, python-brace-format
 msgid "Ticket updated: {subject}"
+msgstr ""
+
+#: ckanext/issues/mailer.py:116
+#, python-brace-format
+msgid "Ticket assigned to you: {subject}"
 msgstr ""
 
 #: ckanext/issues/table.py:61 ckanext/issues/table.py:205
@@ -50,22 +55,33 @@ msgid "Subject"
 msgstr ""
 
 #: ckanext/issues/table.py:64 ckanext/issues/table.py:208
+#: ckanext/issues/templates/issues/emails/new_message.txt:12
+#: ckanext/issues/templates/issues/emails/new_ticket.txt:12
+#: ckanext/issues/templates/issues/emails/ticket_assigned.txt:12
+#: ckanext/issues/templates/issues/emails/ticket_updated.txt:12
 #: ckanext/issues/templates/issues/ticket_read_inner.html:109
 msgid "Status"
 msgstr ""
 
 #: ckanext/issues/table.py:70
+#: ckanext/issues/templates/issues/emails/new_ticket.txt:14
+#: ckanext/issues/templates/issues/emails/ticket_assigned.txt:13
 #: ckanext/issues/templates/issues/ticket_read_inner.html:125
 msgid "Author"
 msgstr ""
 
 #: ckanext/issues/table.py:76
+#: ckanext/issues/templates/issues/emails/ticket_updated.txt:13
 #: ckanext/issues/templates/issues/ticket_read_inner.html:128
 #: ckanext/issues/templates/issues/ticket_read_inner.html:134
 msgid "Assignee"
 msgstr ""
 
 #: ckanext/issues/table.py:80 ckanext/issues/table.py:212
+#: ckanext/issues/templates/issues/emails/new_message.txt:11
+#: ckanext/issues/templates/issues/emails/new_ticket.txt:11
+#: ckanext/issues/templates/issues/emails/ticket_assigned.txt:11
+#: ckanext/issues/templates/issues/emails/ticket_updated.txt:11
 #: ckanext/issues/templates/issues/ticket_modal_form.html:12
 #: ckanext/issues/templates/issues/ticket_read_inner.html:122
 msgid "Category"
@@ -176,7 +192,7 @@ msgid ""
 " before opening another."
 msgstr ""
 
-#: ckanext/issues/logic/action.py:170
+#: ckanext/issues/logic/action.py:182
 msgid "Cannot add messages to closed tickets"
 msgstr ""
 
@@ -264,6 +280,10 @@ msgstr ""
 msgid "My tickets"
 msgstr ""
 
+#: ckanext/issues/templates/issues/emails/new_message.txt:9
+#: ckanext/issues/templates/issues/emails/new_ticket.txt:9
+#: ckanext/issues/templates/issues/emails/ticket_assigned.txt:9
+#: ckanext/issues/templates/issues/emails/ticket_updated.txt:9
 #: ckanext/issues/templates/issues/ticket_read_inner.html:10
 msgid "Ticket"
 msgstr ""
@@ -355,4 +375,63 @@ msgstr ""
 
 #: ckanext/issues/templates/issues/ticket_read_inner.html:204
 msgid "Delete ticket"
+msgstr ""
+
+#: ckanext/issues/templates/issues/emails/new_message.txt:4
+#: ckanext/issues/templates/issues/emails/new_ticket.txt:4
+#: ckanext/issues/templates/issues/emails/ticket_assigned.txt:4
+#: ckanext/issues/templates/issues/emails/ticket_updated.txt:4
+#, python-format
+msgid "Dear %(name)s,"
+msgstr ""
+
+#: ckanext/issues/templates/issues/emails/new_message.txt:6
+#, python-format
+msgid "You have received a new reply on your support ticket on %(site_title)s."
+msgstr ""
+
+#: ckanext/issues/templates/issues/emails/new_message.txt:15
+#, python-format
+msgid "New reply from %(author)s:"
+msgstr ""
+
+#: ckanext/issues/templates/issues/emails/new_message.txt:21
+msgid "To view the full conversation and reply, visit:"
+msgstr ""
+
+#: ckanext/issues/templates/issues/emails/new_message.txt:28
+#: ckanext/issues/templates/issues/emails/new_ticket.txt:28
+#: ckanext/issues/templates/issues/emails/ticket_assigned.txt:27
+#: ckanext/issues/templates/issues/emails/ticket_updated.txt:23
+msgid "This is an automated notification. Do not reply to this email."
+msgstr ""
+
+#: ckanext/issues/templates/issues/emails/new_ticket.txt:6
+#, python-format
+msgid ""
+"A new support ticket has been submitted on %(site_title)s and requires your "
+"attention."
+msgstr ""
+
+#: ckanext/issues/templates/issues/emails/new_ticket.txt:13
+msgid "Submitted"
+msgstr ""
+
+#: ckanext/issues/templates/issues/emails/new_ticket.txt:21
+#: ckanext/issues/templates/issues/emails/ticket_assigned.txt:20
+msgid "To view and respond to this ticket, visit:"
+msgstr ""
+
+#: ckanext/issues/templates/issues/emails/ticket_assigned.txt:6
+#, python-format
+msgid "A support ticket on %(site_title)s has been assigned to you."
+msgstr ""
+
+#: ckanext/issues/templates/issues/emails/ticket_updated.txt:6
+#, python-format
+msgid "Your support ticket on %(site_title)s has been updated."
+msgstr ""
+
+#: ckanext/issues/templates/issues/emails/ticket_updated.txt:16
+msgid "To view the full ticket, visit:"
 msgstr ""

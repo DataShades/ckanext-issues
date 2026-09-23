@@ -1,20 +1,24 @@
-Dear {{ recipient_name }},
+{#- Plain-text mail: CKAN's Jinja env autoescapes every template, which would
+    turn "&" into "&amp;" here. -#}
+{% autoescape false -%}
+{% trans name=recipient_name %}Dear {{ name }},{% endtrans %}
 
-Your support ticket on {{ site_title }} has been updated.
+{% trans %}Your support ticket on {{ site_title }} has been updated.{% endtrans %}
 
 ────────────────────────────────────────
-  Ticket #{{ ticket.id }}: {{ ticket.subject }}
+  {{ _('Ticket') }} #{{ ticket.id }}: {{ ticket.subject }}
 ────────────────────────────────────────
-  Category : {{ ticket.category }}
-  Status   : {{ ticket.status }}
-{% if ticket.assignee %}  Assignee : {{ ticket.assignee.display_name | default(ticket.assignee.name) }}
+  {{ _('Category') }}: {{ ticket.category }}
+  {{ _('Status') }}: {{ ticket.status }}
+{% if ticket.assignee %}  {{ _('Assignee') }}: {{ ticket.assignee.display_name }}
 {% endif %}────────────────────────────────────────
 
-To view the full ticket, visit:
+{{ _('To view the full ticket, visit:') }}
 
   {{ ticket_url }}
 
 --
 {{ site_title }} ({{ site_url }})
 
-This is an automated notification. Do not reply to this email.
+{{ _('This is an automated notification. Do not reply to this email.') }}
+{% endautoescape %}

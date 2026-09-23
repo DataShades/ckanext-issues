@@ -126,9 +126,17 @@ def issues_ticket_update(context: types.Context, data_dict: types.DataDict) -> D
 
     ticket = _get_ticket(data_dict.get("id"))
 
-    for key, value in data_dict.items():
-        if key in _UPDATABLE_TICKET_FIELDS:
-            setattr(ticket, key, value)
+    changes = {
+        key: value
+        for key, value in data_dict.items()
+        if key in _UPDATABLE_TICKET_FIELDS and getattr(ticket, key) != value
+    }
+    if not changes:
+        # e.g. bulk-closing an already closed ticket: no write, no notification
+        return ticket.dictize(context)
+
+    for key, value in changes.items():
+        setattr(ticket, key, value)
 
     model.Session.commit()
 
@@ -146,7 +154,13 @@ def issues_ticket_assign(context: types.Context, data_dict: types.DataDict) -> D
 
     ticket = _get_ticket(data_dict.get("id"))
 
-    ticket.assignee_id = data_dict.get("assignee_id")
+    assignee_id = data_dict.get("assignee_id")
+    if ticket.assignee_id == assignee_id:
+        return ticket.dictize(context)
+
+    # Set the relationship, not just the column: the session doesn't expire
+    # on commit, so an already-loaded ``ticket.assignee`` would stay stale.
+    ticket.assignee = model.User.get(assignee_id) if assignee_id else None
 
     model.Session.commit()
 
@@ -154,6 +168,8 @@ def issues_ticket_assign(context: types.Context, data_dict: types.DataDict) -> D
 
     dictized = ticket.dictize(context)
     issues_signals.ticket_updated.send(ticket=dictized)
+    if dictized["assignee"]:
+        issues_signals.ticket_assigned.send(ticket=dictized)
 
     return dictized
 

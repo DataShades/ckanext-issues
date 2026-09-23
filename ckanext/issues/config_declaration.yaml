@@ -26,7 +26,7 @@ groups:
     type: bool
     default: true
     description: |
-      Email active sysadmins (and the assignee, if any) when a ticket is created.
+      Email active sysadmins when a ticket is created.
 
   - key: ckanext.issues.notify_on_new_message
     type: bool
@@ -39,3 +39,17 @@ groups:
     default: true
     description: |
       Email the ticket author when their ticket is updated (status, assignee...).
+
+  - key: ckanext.issues.notify_on_ticket_assign
+    type: bool
+    default: true
+    description: |
+      Email the new assignee when a ticket is assigned to them.
+
+  - key: ckanext.issues.mail_queue
+    default: default
+    example: issues_mail
+    description: |
+      Name of the background-job queue notification mails are sent from.
+      Use a dedicated queue to keep mail separate from other jobs, and run a
+      worker for it: `ckan jobs worker issues_mail`.

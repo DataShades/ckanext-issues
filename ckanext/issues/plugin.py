@@ -40,4 +40,7 @@ class IssuesPlugin(p.SingletonPlugin, DefaultTranslation):
             issues_signals.ticket_updated: [
                 mailer.notify_author_on_ticket_update,
             ],
+            issues_signals.ticket_assigned: [
+                mailer.notify_assignee_on_assign,
+            ],
         }
