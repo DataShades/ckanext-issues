@@ -26,3 +26,12 @@ ticket_updated = tk.signals.ckanext.signal(
     "issues:ticket_updated",
     "Fired when a support ticket is updated",
 )
+
+
+# Fired after a ticket (and its messages) is deleted.
+# sender  : None
+# kwargs  : ticket (DictizedTicket) — the ticket as it was before deletion
+ticket_deleted = tk.signals.ckanext.signal(
+    "issues:ticket_deleted",
+    "Fired when a support ticket is deleted",
+)

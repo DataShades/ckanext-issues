@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import sqlalchemy as sa
+
 from ckan import model, types
 from ckan.logic import validate
 from ckan.plugins import toolkit as tk
@@ -27,7 +29,7 @@ def _get_ticket(ticket_id: Any) -> issues_model.Ticket:
     """
     ticket = issues_model.Ticket.get(ticket_id)
     if ticket is None:
-        msg = "Ticket not found"
+        msg = tk._("Ticket not found")
         raise tk.ObjectNotFound(msg)
     return ticket
 
@@ -36,7 +38,7 @@ def _get_message(message_id: Any) -> issues_model.TicketMessage:
     """Fetch a message or raise ObjectNotFound."""
     message = issues_model.TicketMessage.get(message_id)
     if message is None:
-        msg = "Message not found"
+        msg = tk._("Message not found")
         raise tk.ObjectNotFound(msg)
     return message
 
@@ -57,6 +59,10 @@ def _enforce_open_ticket_limit(context: types.Context, author_id: str) -> None:
     user = model.User.get(author_id)
     if not user or user.sysadmin:
         return
+
+    # Lock the author's row until the ticket is committed, so concurrent
+    # submissions are serialised and can't all pass the count below.
+    model.Session.execute(sa.select(model.User.id).where(model.User.id == user.id).with_for_update())
 
     if issues_model.Ticket.count_open_for_author(user.id) >= limit:
         raise tk.ValidationError(
@@ -103,9 +109,14 @@ def issues_ticket_delete(context: types.Context, data_dict: types.DataDict) -> b
     tk.check_access("issues_ticket_delete", context, data_dict)
 
     ticket = _get_ticket(data_dict.get("id"))
+    dictized = ticket.dictize(context)
     ticket.delete()
 
     model.Session.commit()
+
+    log.info("[id:%s] ticket deleted", dictized["id"])
+
+    issues_signals.ticket_deleted.send(ticket=dictized)
 
     return True
 
@@ -123,7 +134,7 @@ def issues_ticket_update(context: types.Context, data_dict: types.DataDict) -> D
     ticket.updated_at = issues_model.datetime.utcnow()
     model.Session.commit()
 
-    log.info("[id:%s] ticket been updated: %s", ticket.id, data_dict)
+    log.info("[id:%s] ticket updated, status: %s", ticket.id, ticket.status)
 
     dictized = ticket.dictize(context)
     issues_signals.ticket_updated.send(ticket=dictized)
@@ -156,7 +167,7 @@ def issues_message_create(context: types.Context, data_dict: types.DataDict) -> 
     ticket = _get_ticket(data_dict.get("ticket_id"))
 
     if ticket.status != issues_model.Ticket.Status.opened:
-        raise tk.ValidationError({"ticket_id": ["Cannot add messages to closed tickets"]})
+        raise tk.ValidationError({"ticket_id": [tk._("Cannot add messages to closed tickets")]})
 
     message = issues_model.TicketMessage.add(
         ticket_id=data_dict["ticket_id"],

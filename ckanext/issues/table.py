@@ -58,32 +58,33 @@ class SupportTable(t.TableDefinition):
             table_template="issues/list.html",
             data_source=t.DatabaseDataSource(stmt=_build_support_tickets_stmt()),
             columns=[
-                t.ColumnDefinition(field="subject"),
+                t.ColumnDefinition(field="subject", title=tk._("Subject")),
                 t.ColumnDefinition(
                     field="status",
+                    title=tk._("Status"),
                     formatters=[(sf.StatusFormatter, {})],
                     tabulator_formatter="html",
                 ),
                 t.ColumnDefinition(
                     field="author_name",
-                    title="Author",
+                    title=tk._("Author"),
                     formatters=[(sf.UserNameLinkFormatter, {"id_field": "author_id"})],
                     tabulator_formatter="html",
                 ),
                 t.ColumnDefinition(
                     field="assignee_name",
-                    title="Assignee",
+                    title=tk._("Assignee"),
                     formatters=[(sf.UserNameLinkFormatter, {"id_field": "assignee_id"})],
                     tabulator_formatter="html",
                 ),
-                t.ColumnDefinition(field="category", title="Category"),
-                t.ColumnDefinition(field="created_at", title="Created At"),
-                t.ColumnDefinition(field="updated_at", title="Updated At"),
+                t.ColumnDefinition(field="category", title=tk._("Category")),
+                t.ColumnDefinition(field="created_at", title=tk._("Created At")),
+                t.ColumnDefinition(field="updated_at", title=tk._("Updated At")),
             ],
             row_actions=[
                 t.RowActionDefinition(
                     action="view",
-                    label="View",
+                    label=tk._("View"),
                     icon="fa fa-eye",
                     callback=lambda row: t.ActionHandlerResult(
                         success=True,
@@ -92,7 +93,7 @@ class SupportTable(t.TableDefinition):
                 ),
                 t.RowActionDefinition(
                     action="delete",
-                    label="Delete",
+                    label=tk._("Delete"),
                     icon="fa fa-trash",
                     callback=self.row_action_delete,
                     with_confirmation=True,
@@ -101,19 +102,19 @@ class SupportTable(t.TableDefinition):
             bulk_actions=[
                 t.BulkActionDefinition(
                     action="close_tickets",
-                    label="Close selected tickets",
+                    label=tk._("Close selected tickets"),
                     icon="fa fa-check",
                     callback=self.bulk_close,
                 ),
                 t.BulkActionDefinition(
                     action="reopen_tickets",
-                    label="Reopen selected tickets",
+                    label=tk._("Reopen selected tickets"),
                     icon="fa fa-folder-open",
                     callback=self.bulk_reopen,
                 ),
                 t.BulkActionDefinition(
                     action="remove_tickets",
-                    label="Remove selected tickets",
+                    label=tk._("Remove selected tickets"),
                     icon="fa fa-trash",
                     callback=self.bulk_remove,
                 ),
@@ -134,7 +135,7 @@ class SupportTable(t.TableDefinition):
                 {"ignore_auth": True},
                 {"id": row["id"], "status": Ticket.Status.closed},
             )
-        return t.ActionHandlerResult(success=True, message="Ticket(s) closed.")
+        return t.ActionHandlerResult(success=True, message=tk._("Ticket(s) closed."))
 
     def bulk_reopen(self, rows: list[t.Row]) -> t.ActionHandlerResult:
         for row in rows:
@@ -142,12 +143,12 @@ class SupportTable(t.TableDefinition):
                 {"ignore_auth": True},
                 {"id": row["id"], "status": Ticket.Status.opened},
             )
-        return t.ActionHandlerResult(success=True, message="Ticket(s) reopened.")
+        return t.ActionHandlerResult(success=True, message=tk._("Ticket(s) reopened."))
 
     def bulk_remove(self, rows: list[t.Row]) -> t.ActionHandlerResult:
         for row in rows:
             tk.get_action("issues_ticket_delete")({"ignore_auth": True}, {"id": row["id"]})
-        return t.ActionHandlerResult(success=True, message="Ticket(s) removed.")
+        return t.ActionHandlerResult(success=True, message=tk._("Ticket(s) removed."))
 
 
 class UserTicketTable(t.TableDefinition):
@@ -177,20 +178,21 @@ class UserTicketTable(t.TableDefinition):
             table_template="issues/my_tickets.html",
             data_source=t.DatabaseDataSource(stmt=stmt),
             columns=[
-                t.ColumnDefinition(field="subject"),
+                t.ColumnDefinition(field="subject", title=tk._("Subject")),
                 t.ColumnDefinition(
                     field="status",
+                    title=tk._("Status"),
                     formatters=[(sf.StatusFormatter, {})],
                     tabulator_formatter="html",
                 ),
-                t.ColumnDefinition(field="category", title="Category"),
-                t.ColumnDefinition(field="created_at", title="Created At"),
-                t.ColumnDefinition(field="updated_at", title="Updated At"),
+                t.ColumnDefinition(field="category", title=tk._("Category")),
+                t.ColumnDefinition(field="created_at", title=tk._("Created At")),
+                t.ColumnDefinition(field="updated_at", title=tk._("Updated At")),
             ],
             row_actions=[
                 t.RowActionDefinition(
                     action="view",
-                    label="View",
+                    label=tk._("View"),
                     icon="fa fa-eye",
                     callback=lambda row: t.ActionHandlerResult(
                         success=True,
@@ -204,5 +206,5 @@ class UserTicketTable(t.TableDefinition):
     def check_access(cls, context: types.Context) -> None:  # noqa: ARG003
         if tk.current_user.is_authenticated:
             return
-        msg = "You are not authorized to view this table"
+        msg = tk._("You are not authorized to view this table")
         raise tk.NotAuthorized(msg)

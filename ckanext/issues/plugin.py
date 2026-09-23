@@ -3,6 +3,7 @@ from __future__ import annotations
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 from ckan import types
+from ckan.lib.plugins import DefaultTranslation
 
 from ckanext.issues import mailer
 from ckanext.issues import signals as issues_signals
@@ -14,9 +15,10 @@ from ckanext.issues import signals as issues_signals
 @tk.blanket.validators
 @tk.blanket.helpers
 @tk.blanket.config_declarations
-class IssuesPlugin(p.SingletonPlugin):
+class IssuesPlugin(p.SingletonPlugin, DefaultTranslation):
     p.implements(p.IConfigurer)
     p.implements(p.ISignal)
+    p.implements(p.ITranslation)
 
     # IConfigurer
 

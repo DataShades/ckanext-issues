@@ -181,6 +181,22 @@ class TestTicketDelete:
         with pytest.raises(tk.ValidationError, match="Ticket not found"):
             call_action("issues_ticket_show", id=ticket["id"])
 
+    def test_delete_fires_ticket_deleted_signal(self, ticket):
+        received = []
+
+        def receiver(sender, **kwargs):
+            received.append(kwargs["ticket"])
+
+        signal = tk.signals.ckanext.signal("issues:ticket_deleted")
+        signal.connect(receiver)
+        try:
+            call_action("issues_ticket_delete", id=ticket["id"])
+        finally:
+            signal.disconnect(receiver)
+
+        assert [t["id"] for t in received] == [ticket["id"]]
+        assert received[0]["subject"] == ticket["subject"]
+
     def test_delete_nonexistent_ticket(self, sysadmin):
         """Test deleting a non-existent ticket raises an error."""
         context = {"user": sysadmin["name"], "model": model}

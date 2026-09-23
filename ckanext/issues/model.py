@@ -34,6 +34,16 @@ def _dictize_user(user: model.User) -> DictizedUser:
     return DictizedUser(id=user.id, name=user.name, display_name=user.display_name)
 
 
+def get_active_sysadmins() -> list[model.User]:
+    """Active sysadmins, ordered by name: the assignee pool and new-ticket recipients."""
+    stmt = (
+        sa.select(model.User)
+        .where(model.User.sysadmin.is_(True), model.User.state == model.State.ACTIVE)
+        .order_by(model.User.name)
+    )
+    return list(model.Session.scalars(stmt))
+
+
 class Ticket(tk.BaseModel):
     class Status:
         opened = "opened"

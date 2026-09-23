@@ -316,6 +316,36 @@ class TestTicketCreationAndModal:
         assert resp.status_code == 200
 
 
+XHR = {"X-Requested-With": "XMLHttpRequest"}
+
+
+def _table_subjects(app, endpoint, user_id):
+    resp = app.get(tk.url_for(endpoint), headers=_auth(user_id, XHR))
+    assert resp.status_code == 200
+    return {row["subject"] for row in resp.json["data"]}
+
+
+class TestTableContent:
+    def test_my_tickets_lists_only_own_tickets(self, app, ticket_factory, user):
+        own = ticket_factory(author_id=user["id"])
+        other = ticket_factory()
+
+        subjects = _table_subjects(app, "issues.my_tickets", user["id"])
+
+        assert own["subject"] in subjects
+        assert other["subject"] not in subjects
+
+    def test_admin_list_shows_all_tickets_with_author_names(self, app, ticket_factory, sysadmin):
+        first = ticket_factory()
+        second = ticket_factory()
+
+        resp = app.get(tk.url_for("issues_admin.list"), headers=_auth(sysadmin["id"], XHR))
+        rows = {row["subject"]: row for row in resp.json["data"]}
+
+        assert {first["subject"], second["subject"]} <= set(rows)
+        assert first["author"]["name"] in rows[first["subject"]]["author_name"]
+
+
 class TestAdminBlueprint:
     def test_sysadmin_sees_the_dashboard(self, app, sysadmin):
         resp = app.get(tk.url_for("issues_admin.list"), headers=_auth(sysadmin["id"]))

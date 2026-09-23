@@ -1,13 +1,12 @@
 import logging
 from typing import Any
 
-from sqlalchemy import select
-
 import ckan.plugins.toolkit as tk
 from ckan import model
 from ckan.lib import mailer
 
 from ckanext.issues import config
+from ckanext.issues.model import get_active_sysadmins
 from ckanext.issues.types import DictizedMessage, DictizedTicket
 
 log = logging.getLogger(__name__)
@@ -26,7 +25,7 @@ def notify_admins_on_new_ticket(sender: None, **kwargs: Any) -> None:
 
     ticket: DictizedTicket = kwargs["ticket"]
 
-    recipients = _get_sysadmin_users()
+    recipients = [user for user in get_active_sysadmins() if user.email]
 
     if ticket.get("assignee"):
         assignee = model.User.get(ticket["assignee"]["id"])
@@ -43,7 +42,7 @@ def notify_admins_on_new_ticket(sender: None, **kwargs: Any) -> None:
 
         mailer.mail_user(
             user,
-            subject=f"New support ticket: {ticket['subject']}",
+            subject=tk._("New support ticket: {subject}").format(subject=ticket["subject"]),
             body=_render_new_ticket(ticket, recipient_name=user.display_name),
         )
 
@@ -83,7 +82,7 @@ def notify_author_on_new_message(sender: None, **kwargs: Any) -> None:
 
     mailer.mail_user(
         author,
-        subject=f"New reply on your ticket: {ticket['subject']}",
+        subject=tk._("New reply on your ticket: {subject}").format(subject=ticket["subject"]),
         body=_render_new_message(ticket, message, recipient_name=author.display_name),
     )
 
@@ -117,19 +116,9 @@ def notify_author_on_ticket_update(sender: None, **kwargs: Any) -> None:
 
     mailer.mail_user(
         author,
-        subject=f"Ticket updated: {ticket['subject']}",
+        subject=tk._("Ticket updated: {subject}").format(subject=ticket["subject"]),
         body=_render_ticket_updated(ticket, recipient_name=author.display_name),
     )
-
-
-def _get_sysadmin_users() -> list[model.User]:
-    """Return all active sysadmin users that have an email address."""
-    stmt = select(model.User).where(
-        model.User.sysadmin.is_(True),
-        model.User.state == model.State.ACTIVE,
-        model.User.email.isnot(None),
-    )
-    return list(model.Session.scalars(stmt).all())
 
 
 def _render_new_ticket(ticket: DictizedTicket, recipient_name: str) -> str:

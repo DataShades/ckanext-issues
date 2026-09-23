@@ -4,8 +4,9 @@ import pytest
 
 import ckan.model as model
 from ckan.tests import factories
+from ckan.tests.helpers import call_action
 
-from ckanext.issues.model import Ticket
+from ckanext.issues.model import Ticket, get_active_sysadmins
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
@@ -34,3 +35,20 @@ class TestAssigneeDeletion:
         model.Session.expire_all()
 
         assert Ticket.get(ticket["id"]) is None
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+class TestActiveSysadmins:
+    def test_only_active_sysadmins_ordered_by_name(self):
+        b = factories.Sysadmin(name="b-admin")
+        a = factories.Sysadmin(name="a-admin")
+        deleted = factories.Sysadmin(name="c-admin")
+        regular = factories.User(name="regular")
+        call_action("user_delete", id=deleted["id"])
+
+        # The site user is an active sysadmin too, so don't assert an exact list.
+        names = [u.name for u in get_active_sysadmins()]
+        assert names == sorted(names)
+        assert {a["name"], b["name"]} <= set(names)
+        assert deleted["name"] not in names
+        assert regular["name"] not in names
