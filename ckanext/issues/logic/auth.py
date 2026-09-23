@@ -17,8 +17,8 @@ def issues_ticket_update(context: types.Context, data_dict: types.DataDict) -> t
 
 
 def issues_ticket_show(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
-    """The ticket author and its assignee may view it (sysadmins via core)."""
-    return _ticket_participant_only(context, data_dict.get("id"))
+    """The ticket author may view it (sysadmins, incl. assignees, via core)."""
+    return _ticket_author_only(context, data_dict.get("id"))
 
 
 def issues_ticket_create(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
@@ -35,35 +35,36 @@ def issues_ticket_assign(context: types.Context, data_dict: types.DataDict) -> t
 
 
 def issues_message_create(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
-    """The ticket author and its assignee may post messages (sysadmins via core).
-
-    A participant may only post as themselves.
-    """
+    """The ticket author may post messages, as themselves (sysadmins via core)."""
     user_obj = _user_obj(context)
     if not user_obj or not _is_self(user_obj, data_dict):
         return {"success": False}
 
-    return _ticket_participant_only(context, data_dict.get("ticket_id"))
+    return _ticket_author_only(context, data_dict.get("ticket_id"))
 
 
 def issues_message_delete(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
-    """Regular users can only delete their own messages."""
+    """Regular users can only delete their own messages on open tickets."""
     return _own_message_only(context, data_dict)
 
 
 def issues_message_update(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
-    """Regular users can only update their own messages."""
+    """Regular users can only update their own messages on open tickets."""
     return _own_message_only(context, data_dict)
 
 
-def _ticket_participant_only(context: types.Context, ticket_id: str | None) -> types.AuthResult:
-    """Allow the ticket author or its assignee."""
+def _ticket_author_only(context: types.Context, ticket_id: str | None) -> types.AuthResult:
+    """Allow the ticket author.
+
+    Assignees are always sysadmins (see ``issues_assignee_validator``), so core
+    already lets them in; a demoted assignee loses access with the flag.
+    """
     user_obj = _user_obj(context)
     if not user_obj or not ticket_id:
         return {"success": False}
 
     ticket = Ticket.get(ticket_id)
-    if ticket and user_obj.id in (ticket.author_id, ticket.assignee_id):
+    if ticket and user_obj.id == ticket.author_id:
         return {"success": True}
 
     return {"success": False}
@@ -75,7 +76,7 @@ def _own_message_only(context: types.Context, data_dict: types.DataDict) -> type
         return {"success": False}
 
     message = TicketMessage.get(data_dict.get("id"))
-    if message and message.author_id == user_obj.id:
+    if message and message.author_id == user_obj.id and message.ticket.status == Ticket.Status.opened:
         return {"success": True}
 
     return {"success": False}

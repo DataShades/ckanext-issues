@@ -145,6 +145,11 @@ class TestTicketUpdate:
         updated_ticket = call_action("issues_ticket_show", id=ticket["id"])
         assert updated_ticket["status"] == Ticket.Status.closed
 
+    def test_update_ignores_the_ticket_body(self, ticket):
+        call_action("issues_ticket_update", id=ticket["id"], text="rewritten")
+
+        assert call_action("issues_ticket_show", id=ticket["id"])["text"] == ticket["text"]
+
     def test_update_nonexistent_ticket(self, sysadmin):
         """Test updating a non-existent ticket raises an error."""
         context = {"user": sysadmin["name"], "model": model}
@@ -396,3 +401,21 @@ class TestMessageUpdate:
                 id="999999",
                 content="This should fail",
             )
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+class TestTicketAssign:
+    def test_assign_to_sysadmin_by_name_stores_the_id(self, ticket, sysadmin):
+        result = call_action("issues_ticket_assign", id=ticket["id"], assignee_id=sysadmin["name"])
+
+        assert result["assignee"]["id"] == sysadmin["id"]
+
+    def test_assign_to_regular_user_is_rejected(self, ticket, user):
+        with pytest.raises(tk.ValidationError, match="active sysadmin"):
+            call_action("issues_ticket_assign", id=ticket["id"], assignee_id=user["id"])
+
+    def test_empty_assignee_unassigns(self, ticket, sysadmin):
+        call_action("issues_ticket_assign", id=ticket["id"], assignee_id=sysadmin["id"])
+        result = call_action("issues_ticket_assign", id=ticket["id"], assignee_id="")
+
+        assert result["assignee"] is None

@@ -172,8 +172,8 @@ class UpdateMessageView(MethodView):
 
 class TicketReadView(MethodView):
     def get(self, ticket_id: str) -> str:
-        # Authorization (author / assignee / sysadmin) lives in the
-        # issues_ticket_show auth function.
+        # Authorization (author / sysadmin) lives in the issues_ticket_show
+        # auth function.
         try:
             ticket: DictizedTicket = tk.get_action("issues_ticket_show")(
                 {"user": tk.current_user.name},

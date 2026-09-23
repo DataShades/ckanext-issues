@@ -56,7 +56,7 @@ class TestTicketReadView:
         assert resp.status_code == 200
         assert f"#{ticket['id']}" in resp.body
 
-    def test_assignee_can_open_the_ticket(self, app, ticket, user):
+    def test_demoted_assignee_is_forbidden(self, app, ticket, user):
         _assign(ticket["id"], user["id"])
 
         resp = app.get(
@@ -64,7 +64,7 @@ class TestTicketReadView:
             headers=_auth(user["id"]),
         )
 
-        assert resp.status_code == 200
+        assert resp.status_code == 403
 
     def test_unrelated_user_is_forbidden(self, app, ticket, user):
         resp = app.get(
@@ -130,13 +130,11 @@ class TestAddMessageView:
         assert resp.status_code == 200
         assert _messages(ticket["id"])[-1]["content"] == "a reply"
 
-    def test_assignee_can_reply(self, app, ticket, user):
-        _assign(ticket["id"], user["id"])
-
+    def test_sysadmin_can_reply(self, app, ticket, sysadmin):
         app.post(
             tk.url_for("issues.add_message", ticket_id=ticket["id"]),
             data={"content": "staff reply"},
-            headers=_auth(user["id"]),
+            headers=_auth(sysadmin["id"]),
         )
 
         assert _messages(ticket["id"])[-1]["content"] == "staff reply"
@@ -321,15 +319,15 @@ class TestAdminBlueprint:
         assert resp.status_code == 200
         assert call_action("issues_ticket_show", id=ticket["id"])["status"] == "closed"
 
-    def test_sysadmin_can_assign_a_ticket(self, app, ticket, sysadmin, user):
+    def test_sysadmin_can_assign_a_ticket(self, app, ticket, sysadmin):
         resp = app.post(
             tk.url_for("issues_admin.ticket_assign", ticket_id=ticket["id"]),
-            data={"assignee_id": user["id"]},
+            data={"assignee_id": sysadmin["id"]},
             headers=_auth(sysadmin["id"], HX),
         )
 
         assert resp.status_code == 200
-        assert call_action("issues_ticket_show", id=ticket["id"])["assignee"]["id"] == user["id"]
+        assert call_action("issues_ticket_show", id=ticket["id"])["assignee"]["id"] == sysadmin["id"]
 
     def test_regular_user_cannot_toggle_status(self, app, ticket, user):
         resp = app.post(

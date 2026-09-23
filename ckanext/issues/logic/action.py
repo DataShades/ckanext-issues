@@ -15,7 +15,7 @@ from ckanext.issues.types import DictizedMessage, DictizedTicket, TicketData
 
 log = logging.getLogger(__name__)
 
-_UPDATABLE_TICKET_FIELDS = {"status", "text"}
+_UPDATABLE_TICKET_FIELDS = {"status"}
 
 
 def _get_ticket(ticket_id: Any) -> issues_model.Ticket:

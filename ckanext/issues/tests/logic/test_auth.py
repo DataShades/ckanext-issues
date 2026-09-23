@@ -5,7 +5,7 @@ import pytest
 import ckan.model as model
 import ckan.plugins.toolkit as tk
 from ckan.tests import factories
-from ckan.tests.helpers import call_auth
+from ckan.tests.helpers import call_action, call_auth
 
 from ckanext.issues.model import Ticket
 
@@ -245,7 +245,7 @@ def _assign(ticket_id, user_id):
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestTicketShowAuth:
-    """The ticket author and its assignee may view it (sysadmins via core)."""
+    """The ticket author may view it (sysadmins, incl. assignees, via core)."""
 
     def test_author_can_view(self, ticket):
         result = call_auth(
@@ -255,14 +255,15 @@ class TestTicketShowAuth:
         )
         assert result is True
 
-    def test_assignee_can_view(self, ticket, user):
+    def test_demoted_assignee_cannot_view(self, ticket, user):
+        # Assignees get access only through the sysadmin flag.
         _assign(ticket["id"], user["id"])
-        result = call_auth(
-            "issues_ticket_show",
-            context={"user": user["name"], "model": model},
-            id=ticket["id"],
-        )
-        assert result is True
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_ticket_show",
+                context={"user": user["name"], "model": model},
+                id=ticket["id"],
+            )
 
     def test_unrelated_user_cannot_view(self, ticket, user):
         with pytest.raises(tk.NotAuthorized):
@@ -291,7 +292,7 @@ class TestTicketShowAuth:
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestMessageCreateAuth:
-    """The ticket author and its assignee may post messages (sysadmins via core)."""
+    """The ticket author may post messages (sysadmins via core)."""
 
     def test_message_create_by_author(self, ticket):
         result = call_auth(
@@ -301,14 +302,14 @@ class TestMessageCreateAuth:
         )
         assert result is True
 
-    def test_message_create_by_assignee(self, ticket, user):
+    def test_message_create_by_demoted_assignee(self, ticket, user):
         _assign(ticket["id"], user["id"])
-        result = call_auth(
-            "issues_message_create",
-            context={"user": user["name"], "model": model},
-            ticket_id=ticket["id"],
-        )
-        assert result is True
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_message_create",
+                context={"user": user["name"], "model": model},
+                ticket_id=ticket["id"],
+            )
 
     def test_message_create_as_another_user(self, ticket, sysadmin):
         with pytest.raises(tk.NotAuthorized):
@@ -341,4 +342,26 @@ class TestMessageCreateAuth:
                 "issues_message_create",
                 context={"user": None, "model": model},
                 ticket_id=ticket["id"],
+            )
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+class TestMessageMutationOnClosedTicket:
+    """Authors can't edit or delete their messages once the ticket is closed."""
+
+    @pytest.mark.parametrize("action", ["issues_message_update", "issues_message_delete"])
+    def test_denied_on_closed_ticket(self, action, ticket):
+        message = call_action(
+            "issues_message_create",
+            ticket_id=ticket["id"],
+            author_id=ticket["author"]["id"],
+            content="reply",
+        )
+        call_action("issues_ticket_update", id=ticket["id"], status=Ticket.Status.closed)
+
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                action,
+                context={"user": ticket["author"]["name"], "model": model},
+                id=message["id"],
             )

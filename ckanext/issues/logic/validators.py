@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import ckan.plugins.toolkit as tk
-from ckan import types
+from ckan import model, types
 
 import ckanext.issues.config as issues_config
 from ckanext.issues.model import Ticket, TicketMessage
@@ -35,3 +35,13 @@ def issues_category_validator(ticket_category: str) -> str:
         raise tk.Invalid(msg)
 
     return ticket_category
+
+
+def issues_assignee_validator(user_id_or_name: str, context: types.Context) -> Any:
+    """Ensure the assignee is an active sysadmin; normalise it to the user id."""
+    user = model.User.get(user_id_or_name)
+    if not user or user.state != model.State.ACTIVE or not user.sysadmin:
+        msg = "Tickets can only be assigned to an active sysadmin"
+        raise tk.Invalid(msg)
+
+    return user.id
