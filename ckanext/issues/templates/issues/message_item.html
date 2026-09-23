@@ -43,7 +43,6 @@
                     and (_ticket is none or _ticket.status == 'opened')  %}
                     <button class="btn btn-sm btn-danger"
                             hx-post="{{ h.url_for('issues.delete_message', message_id=message.id) }}"
-                            hx-vals='{"ticket_id": {{ message.ticket_id }}}'
                             hx-target="#messages-container-outer"
                             hx-swap="outerHTML swap:0.1s"
                             hx-confirm="{{ _('Delete this message?') }}"

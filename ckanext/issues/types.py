@@ -1,4 +1,10 @@
-from typing import Any, TypedDict
+from typing import TypedDict
+
+
+class DictizedUser(TypedDict):
+    id: str
+    name: str
+    display_name: str
 
 
 class TicketData(TypedDict):
@@ -12,7 +18,7 @@ class DictizedMessage(TypedDict):
     id: int
     ticket_id: int
     content: str
-    author: dict[str, Any]
+    author: DictizedUser
     created_at: str
     updated_at: str | None
 
@@ -23,8 +29,8 @@ class DictizedTicket(TypedDict):
     subject: str
     status: str
     text: str
-    author: dict[str, Any]
-    assignee: dict[str, Any] | None
+    author: DictizedUser
+    assignee: DictizedUser | None
     created_at: str
     updated_at: str
     messages: list[DictizedMessage]

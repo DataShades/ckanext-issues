@@ -22,6 +22,11 @@ def issues_ticket_show(context: types.Context, data_dict: types.DataDict) -> typ
 
 
 def issues_ticket_create(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
+    """Any user may open a ticket, but only on their own behalf."""
+    user_obj = _user_obj(context)
+    if not user_obj or not _is_self(user_obj, data_dict):
+        return {"success": False}
+
     return {"success": True}
 
 
@@ -30,7 +35,14 @@ def issues_ticket_assign(context: types.Context, data_dict: types.DataDict) -> t
 
 
 def issues_message_create(context: types.Context, data_dict: types.DataDict) -> types.AuthResult:
-    """The ticket author and its assignee may post messages (sysadmins via core)."""
+    """The ticket author and its assignee may post messages (sysadmins via core).
+
+    A participant may only post as themselves.
+    """
+    user_obj = _user_obj(context)
+    if not user_obj or not _is_self(user_obj, data_dict):
+        return {"success": False}
+
     return _ticket_participant_only(context, data_dict.get("ticket_id"))
 
 
@@ -67,6 +79,12 @@ def _own_message_only(context: types.Context, data_dict: types.DataDict) -> type
         return {"success": True}
 
     return {"success": False}
+
+
+def _is_self(user_obj: model.User, data_dict: types.DataDict) -> bool:
+    """Whether ``author_id`` (when given) refers to the calling user."""
+    author_id = data_dict.get("author_id")
+    return author_id is None or author_id == user_obj.id
 
 
 def _user_obj(context: types.Context) -> model.User | None:

@@ -107,6 +107,19 @@ class TestTicketShow:
         assert result["id"] == ticket["id"]
         assert result["subject"] == ticket["subject"]
 
+    def test_show_exposes_only_public_user_fields(self, ticket, sysadmin):
+        call_action(
+            "issues_message_create",
+            ticket_id=ticket["id"],
+            author_id=sysadmin["id"],
+            content="reply",
+        )
+        result: DictizedTicket = call_action("issues_ticket_show", id=ticket["id"])
+
+        public = {"id", "name", "display_name"}
+        assert set(result["author"]) == public
+        assert set(result["messages"][0]["author"]) == public
+
     def test_show_nonexistent_ticket(self):
         """Test that showing a non-existent ticket raises an error."""
         with pytest.raises(tk.ValidationError, match="Ticket not found"):

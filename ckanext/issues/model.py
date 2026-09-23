@@ -11,7 +11,7 @@ from typing_extensions import Self
 from ckan import model, types
 from ckan.plugins import toolkit as tk
 
-from ckanext.issues.types import DictizedMessage, DictizedTicket, TicketData
+from ckanext.issues.types import DictizedMessage, DictizedTicket, DictizedUser, TicketData
 
 log = logging.getLogger(__name__)
 
@@ -27,6 +27,11 @@ def _as_pk(value: Any) -> int | None:
         return int(value)
     except (TypeError, ValueError):
         return None
+
+
+def _dictize_user(user: model.User) -> DictizedUser:
+    """Public projection of a user."""
+    return DictizedUser(id=user.id, name=user.name, display_name=user.display_name)
 
 
 class Ticket(tk.BaseModel):
@@ -125,8 +130,8 @@ class Ticket(tk.BaseModel):
             category=self.category or "",
             status=self.status or "",
             text=self.text or "",
-            author=self.author.as_dict(),
-            assignee=self.assignee.as_dict() if self.assignee else None,
+            author=_dictize_user(self.author),
+            assignee=_dictize_user(self.assignee) if self.assignee else None,
             created_at=self.created_at.isoformat(),
             updated_at=self.updated_at.isoformat(),
             messages=[msg.dictize(context) for msg in self.messages],
@@ -188,7 +193,7 @@ class TicketMessage(tk.BaseModel):
             id=self.id,
             ticket_id=self.ticket_id,
             content=self.content,
-            author=self.author.as_dict(),
+            author=_dictize_user(self.author),
             created_at=self.created_at.isoformat(),
             updated_at=self.updated_at.isoformat() if self.updated_at else None,
         )

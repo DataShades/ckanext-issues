@@ -24,6 +24,23 @@ class TestTicketAuth:
         result = call_auth("issues_ticket_create", context={"user": user["name"], "model": model})
         assert result is True
 
+    def test_ticket_create_on_behalf_of_another_user(self, user):
+        other_user = factories.User()
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_ticket_create",
+                context={"user": user["name"], "model": model},
+                author_id=other_user["id"],
+            )
+
+    def test_ticket_create_as_self(self, user):
+        result = call_auth(
+            "issues_ticket_create",
+            context={"user": user["name"], "model": model},
+            author_id=user["id"],
+        )
+        assert result is True
+
     def test_ticket_delete_anon(self):
         """Test that anonymous users cannot delete tickets."""
         with pytest.raises(tk.NotAuthorized):
@@ -292,6 +309,15 @@ class TestMessageCreateAuth:
             ticket_id=ticket["id"],
         )
         assert result is True
+
+    def test_message_create_as_another_user(self, ticket, sysadmin):
+        with pytest.raises(tk.NotAuthorized):
+            call_auth(
+                "issues_message_create",
+                context={"user": ticket["author"]["name"], "model": model},
+                ticket_id=ticket["id"],
+                author_id=sysadmin["id"],
+            )
 
     def test_message_create_by_other_user(self, ticket, user):
         with pytest.raises(tk.NotAuthorized):

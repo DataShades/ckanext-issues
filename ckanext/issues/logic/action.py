@@ -98,7 +98,6 @@ def issues_ticket_show(context: types.Context, data_dict: types.DataDict) -> Dic
     return ticket.dictize(context)
 
 
-@tk.side_effect_free
 @validate(schema.ticket_delete)
 def issues_ticket_delete(context: types.Context, data_dict: types.DataDict) -> bool:
     tk.check_access("issues_ticket_delete", context, data_dict)

@@ -205,7 +205,6 @@ class TestMessageMutation:
 
         resp = app.post(
             tk.url_for("issues.delete_message", message_id=message["id"]),
-            data={"ticket_id": ticket["id"]},
             headers=_auth(ticket["author"]["id"]),
         )
 
@@ -220,7 +219,6 @@ class TestMessageMutation:
 
         resp = app.post(
             tk.url_for("issues.delete_message", message_id=second["id"]),
-            data={"ticket_id": ticket["id"]},
             headers=_auth(ticket["author"]["id"]),
         )
 
@@ -233,11 +231,38 @@ class TestMessageMutation:
 
         app.post(
             tk.url_for("issues.delete_message", message_id=message["id"]),
-            data={"ticket_id": ticket["id"]},
             headers=_auth(user["id"]),
         )
 
         assert len(_messages(ticket["id"])) == 1
+
+    def test_delete_rerenders_own_thread_not_the_requested_one(self, app, ticket, ticket_factory, user):
+        # A client-supplied ticket_id must not expose another ticket's thread.
+        _add_message(ticket["id"], ticket["author"]["id"], content="private reply")
+        own_ticket = ticket_factory(author_id=user["id"])
+        message = _add_message(own_ticket["id"], user["id"])
+
+        resp = app.post(
+            tk.url_for("issues.delete_message", message_id=message["id"]),
+            data={"ticket_id": ticket["id"]},
+            headers=_auth(user["id"]),
+        )
+
+        assert resp.status_code == 200
+        assert "private reply" not in resp.body
+        assert "No replies yet" in resp.body
+
+
+class TestTicketDeleteApi:
+    def test_ticket_delete_is_not_callable_via_get(self, app, ticket, sysadmin):
+        resp = app.get(
+            "/api/action/issues_ticket_delete",
+            query_string={"id": ticket["id"]},
+            headers=_auth(sysadmin["id"]),
+        )
+
+        assert resp.status_code != 200
+        assert call_action("issues_ticket_show", id=ticket["id"])
 
 
 class TestTicketCreationAndModal:

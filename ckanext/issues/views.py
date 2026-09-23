@@ -10,6 +10,7 @@ from ckan.logic import parse_params
 
 from ckanext.tables.shared import GenericTableView
 
+from ckanext.issues.model import TicketMessage
 from ckanext.issues.table import SupportTable, UserTicketTable
 
 if TYPE_CHECKING:
@@ -114,7 +115,8 @@ class AddMessageView(MethodView):
 
 class DeleteMessageView(MethodView):
     def post(self, message_id: str) -> Response | str:
-        data_dict = parse_params(tk.request.form)
+        message = TicketMessage.get(message_id)
+        ticket_id = message.ticket_id if message else None
 
         try:
             tk.get_action("issues_message_delete")(
@@ -129,7 +131,7 @@ class DeleteMessageView(MethodView):
         # stay in sync.
         ticket: DictizedTicket = tk.get_action("issues_ticket_show")(
             {"ignore_auth": True},
-            {"id": data_dict.get("ticket_id")},
+            {"id": ticket_id},
         )
 
         return tk.render(
