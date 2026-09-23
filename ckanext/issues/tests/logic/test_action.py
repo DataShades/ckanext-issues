@@ -466,3 +466,50 @@ class TestTicketAssign:
         result = call_action("issues_ticket_assign", id=ticket["id"], assignee_id="")
 
         assert result["assignee"] is None
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+class TestTimestampsAndThreadSync:
+    def _updated_at(self, ticket_id):
+        return call_action("issues_ticket_show", id=ticket_id)["updated_at"]
+
+    def test_assign_bumps_updated_at(self, ticket, sysadmin):
+        before = self._updated_at(ticket["id"])
+
+        call_action("issues_ticket_assign", id=ticket["id"], assignee_id=sysadmin["id"])
+
+        assert self._updated_at(ticket["id"]) > before
+
+    def test_status_update_bumps_updated_at(self, ticket):
+        before = self._updated_at(ticket["id"])
+
+        call_action("issues_ticket_update", id=ticket["id"], status=Ticket.Status.closed)
+
+        assert self._updated_at(ticket["id"]) > before
+
+    def test_reply_bumps_updated_at(self, ticket):
+        before = self._updated_at(ticket["id"])
+
+        call_action(
+            "issues_message_create",
+            ticket_id=ticket["id"],
+            author_id=ticket["author"]["id"],
+            content="reply",
+        )
+
+        assert self._updated_at(ticket["id"]) > before
+
+    def test_show_sees_messages_added_and_removed_in_the_same_session(self, ticket):
+        # Load the thread first so the collection is cached in the session.
+        assert call_action("issues_ticket_show", id=ticket["id"])["messages"] == []
+
+        message = call_action(
+            "issues_message_create",
+            ticket_id=ticket["id"],
+            author_id=ticket["author"]["id"],
+            content="reply",
+        )
+        assert [m["id"] for m in call_action("issues_ticket_show", id=ticket["id"])["messages"]] == [message["id"]]
+
+        call_action("issues_message_delete", id=message["id"])
+        assert call_action("issues_ticket_show", id=ticket["id"])["messages"] == []

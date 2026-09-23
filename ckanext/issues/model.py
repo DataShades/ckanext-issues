@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import sqlalchemy as sa
@@ -14,6 +14,11 @@ from ckan.plugins import toolkit as tk
 from ckanext.issues.types import DictizedMessage, DictizedTicket, DictizedUser, TicketData
 
 log = logging.getLogger(__name__)
+
+
+def _utcnow() -> datetime:
+    """Naive UTC "now", matching CKAN core's timestamp convention.d"""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def _as_pk(value: Any) -> int | None:
@@ -57,8 +62,8 @@ class Ticket(tk.BaseModel):
         sa.Column("status", sa.Text, default=Status.opened),
         sa.Column("text", sa.Text),
         sa.Column("category", sa.Text),
-        sa.Column("created_at", sa.DateTime, nullable=False, default=datetime.utcnow),
-        sa.Column("updated_at", sa.DateTime, nullable=False, default=datetime.utcnow),
+        sa.Column("created_at", sa.DateTime, nullable=False, default=_utcnow),
+        sa.Column("updated_at", sa.DateTime, nullable=False, default=_utcnow, onupdate=_utcnow),
         sa.Column("author_id", sa.Text, sa.ForeignKey("user.id", ondelete="CASCADE"), nullable=False),
         sa.Column(
             "assignee_id",
@@ -119,8 +124,13 @@ class Ticket(tk.BaseModel):
     def delete(self) -> None:
         model.Session.delete(self)
 
+    def touch(self) -> None:
+        """Mark activity on the ticket without changing its own columns."""
+        self.updated_at = _utcnow()
+
     @classmethod
-    def add(cls, ticket_data: TicketData) -> DictizedTicket:
+    def add(cls, ticket_data: TicketData) -> Self:
+        """Stage a new ticket; the caller commits."""
         ticket = cls(
             subject=ticket_data["subject"],
             category=ticket_data["category"],
@@ -129,9 +139,9 @@ class Ticket(tk.BaseModel):
         )
 
         model.Session.add(ticket)
-        model.Session.commit()
+        model.Session.flush()
 
-        return ticket.dictize({})
+        return ticket
 
     def dictize(self, context: types.Context) -> DictizedTicket:
         return DictizedTicket(
@@ -161,7 +171,7 @@ class TicketMessage(tk.BaseModel):
         ),
         sa.Column("author_id", sa.Text, sa.ForeignKey("user.id", ondelete="CASCADE"), nullable=False),
         sa.Column("content", sa.Text, nullable=False),
-        sa.Column("created_at", sa.DateTime, nullable=False, default=datetime.utcnow),
+        sa.Column("created_at", sa.DateTime, nullable=False, default=_utcnow),
         sa.Column("updated_at", sa.DateTime, nullable=True),
     )
 
@@ -181,22 +191,31 @@ class TicketMessage(tk.BaseModel):
         return model.Session.get(cls, pk) if pk is not None else None
 
     @classmethod
-    def add(cls, ticket_id: int, author_id: str, content: str) -> Self:
-        message = cls(ticket_id=ticket_id, author_id=author_id, content=content)
-        model.Session.add(message)
-        model.Session.commit()
+    def add(cls, ticket: Ticket, author_id: str, content: str) -> Self:
+        """Stage a new message on ``ticket``; the caller commits.
+
+        Appending through the relationship keeps an already-loaded
+        ``ticket.messages`` in sync (the session has expire_on_commit=False).
+        """
+        message = cls(author_id=author_id, content=content)
+        ticket.messages.append(message)
+        model.Session.flush()
 
         return message
 
     def delete(self) -> None:
-        ticket = self.ticket
-        if ticket is not None and self in ticket.messages:
-            ticket.messages.remove(self)
+        """Stage the deletion; the caller commits.
+
+        Removing from the collection keeps an already-loaded
+        ``ticket.messages`` in sync, mirroring ``add``.
+        """
+        if self in self.ticket.messages:
+            self.ticket.messages.remove(self)
         model.Session.delete(self)
 
     def update(self, content: str) -> None:
         self.content = content
-        self.updated_at = datetime.utcnow()
+        self.updated_at = _utcnow()
 
     def dictize(self, context: types.Context) -> DictizedMessage:
         return DictizedMessage(

@@ -83,12 +83,14 @@ def issues_ticket_create(context: types.Context, data_dict: types.DataDict) -> D
     _enforce_open_ticket_limit(context, data_dict["author_id"])
 
     ticket = issues_model.Ticket.add(TicketData(**data_dict))
+    model.Session.commit()
 
-    log.info("[id:%s] the ticket has been submitted", ticket["id"])
+    log.info("[id:%s] the ticket has been submitted", ticket.id)
 
-    issues_signals.ticket_created.send(ticket=ticket)
+    dictized = ticket.dictize(context)
+    issues_signals.ticket_created.send(ticket=dictized)
 
-    return ticket
+    return dictized
 
 
 @tk.side_effect_free
@@ -97,9 +99,6 @@ def issues_ticket_show(context: types.Context, data_dict: types.DataDict) -> Dic
     tk.check_access("issues_ticket_show", context, data_dict)
 
     ticket = _get_ticket(data_dict.get("id"))
-    # Session has expire_on_commit=False, so a ticket that is already in the
-    # identity map can carry a stale `messages` collection. Reload it.
-    model.Session.expire(ticket)
 
     return ticket.dictize(context)
 
@@ -131,7 +130,6 @@ def issues_ticket_update(context: types.Context, data_dict: types.DataDict) -> D
         if key in _UPDATABLE_TICKET_FIELDS:
             setattr(ticket, key, value)
 
-    ticket.updated_at = issues_model.datetime.utcnow()
     model.Session.commit()
 
     log.info("[id:%s] ticket updated, status: %s", ticket.id, ticket.status)
@@ -170,13 +168,11 @@ def issues_message_create(context: types.Context, data_dict: types.DataDict) -> 
         raise tk.ValidationError({"ticket_id": [tk._("Cannot add messages to closed tickets")]})
 
     message = issues_model.TicketMessage.add(
-        ticket_id=data_dict["ticket_id"],
+        ticket,
         author_id=data_dict["author_id"],
         content=data_dict["content"],
     )
-
-    # Update ticket updated_at
-    ticket.updated_at = issues_model.datetime.utcnow()
+    ticket.touch()
     model.Session.commit()
 
     log.info(
