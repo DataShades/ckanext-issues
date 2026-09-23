@@ -131,7 +131,7 @@
                         <form hx-post="{{ h.url_for('issues_admin.ticket_assign', ticket_id=ticket.id) }}">
                             {{ h.csrf_input() }}
 
-                            <label class="control-label sr-only" for="assignee_id">{{ _('Assignee') }}</label>
+                            <label class="visually-hidden" for="assignee_id">{{ _('Assignee') }}</label>
                             <div class="input-group">
                                 <select name="assignee_id" id="assignee_id" class="form-select">
                                     <option value="">{{ _('Unassigned') }}</option>
@@ -141,11 +141,9 @@
                                         </option>
                                     {% endfor %}
                                 </select>
-                                <span class="input-group-btn">
-                                    <button class="btn btn-default" type="submit" title="{{ _('Assign') }}">
-                                        <i class="fa fa-check"></i>
-                                    </button>
-                                </span>
+                                <button class="btn btn-outline-secondary" type="submit" title="{{ _('Assign') }}" aria-label="{{ _('Assign') }}">
+                                    <i class="fa fa-check" aria-hidden="true"></i>
+                                </button>
                             </div>
                         </form>
                     {% else %}

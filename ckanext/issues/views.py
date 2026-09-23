@@ -16,6 +16,8 @@ from ckanext.issues.table import SupportTable, UserTicketTable
 if TYPE_CHECKING:
     from ckanext.issues.types import DictizedMessage, DictizedTicket
 
+_TICKET_FORM_FIELDS = ("subject", "category", "text")
+
 issues = Blueprint(
     "issues",
     __name__,
@@ -72,9 +74,7 @@ issues.before_request(_authenticated_before_request)
 
 def init_modal() -> str:
     """This view inits the modal data on first open or after a submit."""
-    return tk.render(
-        "issues/ticket_modal_form.html",
-    )
+    return tk.render("issues/ticket_modal_form.html")
 
 
 class AddTicketView(MethodView):
@@ -83,24 +83,39 @@ class AddTicketView(MethodView):
         data_dict["author_id"] = tk.g.userobj.id
 
         try:
-            tk.get_action("issues_ticket_create")({"user": tk.g.user}, data_dict)
+            ticket: DictizedTicket = tk.get_action("issues_ticket_create")({"user": tk.g.user}, data_dict)
         except (tk.ObjectNotFound, tk.ValidationError) as e:
-            return self._get_modal_body(
-                title=tk._("An error occurred while creating the ticket"),
-                message=_error_message(e),
-            )
+            return self._render_form(data_dict, e)
 
-        return self._get_modal_body(
-            title=tk._("Your ticket has been successfully created"),
-            message=tk._("View your tickets at the user account page"),
-        )
-
-    def _get_modal_body(self, title: str, message: str) -> str:
         return tk.render(
             "issues/ticket_modal_response.html",
             extra_vars={
-                "title": title,
-                "message": message,
+                "title": tk._("Your ticket has been successfully created"),
+                "message": tk._("We will get back to you as soon as possible."),
+                "ticket": ticket,
+            },
+        )
+
+    def _render_form(self, data: dict[str, Any], error: Exception) -> str:
+        """Re-render the form with the submitted values and inline errors."""
+        errors: dict[str, Any] = {}
+        form_errors: list[str] = []
+
+        if isinstance(error, tk.ValidationError):
+            for field, messages in error.error_dict.items():
+                if field in _TICKET_FORM_FIELDS:
+                    errors[field] = messages
+                else:
+                    form_errors.extend(messages if isinstance(messages, list) else [str(messages)])
+        else:
+            form_errors.append(_error_message(error))
+
+        return tk.render(
+            "issues/ticket_modal_form.html",
+            extra_vars={
+                "data": data,
+                "errors": errors,
+                "form_error": " ".join(form_errors),
             },
         )
 

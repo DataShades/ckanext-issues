@@ -514,6 +514,39 @@ class TestFrontend:
         assert "is not allowed" in resp.body
         assert "{&#39;" not in resp.body
 
+    def test_create_error_keeps_the_submitted_values(self, app, user):
+        resp = app.post(
+            tk.url_for("issues.add_ticket"),
+            data={"subject": "Keep me", "category": "no-such-category", "text": "my long draft"},
+            headers=_auth(user["id"]),
+        )
+
+        assert 'id="add-ticket-form"' in resp.body
+        assert 'value="Keep me"' in resp.body
+        assert "my long draft" in resp.body
+
+    @pytest.mark.ckan_config("ckanext.issues.max_open_tickets_per_user", "1")
+    def test_open_ticket_limit_is_shown_above_the_form(self, app, user):
+        data = {"subject": "Help", "category": "Data request", "text": "please"}
+        app.post(tk.url_for("issues.add_ticket"), data=data, headers=_auth(user["id"]))
+
+        resp = app.post(tk.url_for("issues.add_ticket"), data=data, headers=_auth(user["id"]))
+
+        assert 'class="alert alert-danger"' in resp.body
+        assert "open support tickets" in resp.body
+        assert 'value="Help"' in resp.body
+
+    def test_create_success_links_to_the_ticket(self, app, user):
+        resp = app.post(
+            tk.url_for("issues.add_ticket"),
+            data={"subject": "Help", "category": "Data request", "text": "please"},
+            headers=_auth(user["id"]),
+        )
+
+        ticket = model.Session.scalars(select(Ticket).where(Ticket.author_id == user["id"])).one()
+        assert tk.url_for("issues.ticket_read", ticket_id=ticket.id) in resp.body
+        assert tk.url_for("issues.my_tickets") in resp.body
+
     def test_htmx_error_triggers_a_refresh(self, app, ticket, user):
         message = _add_message(ticket["id"], ticket["author"]["id"])
 

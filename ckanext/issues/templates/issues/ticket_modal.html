@@ -1,16 +1,20 @@
-{% import "macros/form.html" as form %}
-
 <!-- Modal -->
 <div class="modal ticket-modal fade" id="issues-ticket-modal" tabindex="-1" role="dialog" aria-labelledby="issues-ticket-modal-title">
     <div class="modal-dialog" role="document" data-module="issues-modal-htmx">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="issues-ticket-modal-title">{{ _("Create support ticket") }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Close') }}"></button>
             </div>
 
             <div class="modal-body">
-                <div class="issues-ticket-modal-body">
+                <div class="issues-ticket-modal-body" aria-live="polite">
+                    {# Shown while init_modal loads; the JS module puts it back each time the modal opens. #}
+                    <div class="issues-ticket-modal-loading d-flex justify-content-center py-5">
+                        <div class="spinner-border text-secondary" role="status">
+                            <span class="visually-hidden">{{ _("Loading…") }}</span>
+                        </div>
+                    </div>
                 </div>
             </div> <!-- modal-body -->
         </div>

@@ -19,17 +19,19 @@
         {% endif %}
 
         <li>
-            <a
-                href="#"
-                title="{{ _('Support') }}"
+            <button
+                type="button"
+                class="btn btn-link"
+                title="{{ _('Create support ticket') }}"
+                aria-label="{{ _('Create support ticket') }}"
                 data-bs-toggle="modal"
                 data-bs-target="#issues-ticket-modal"
                 {#} the modal is in page.html {#}
                 hx-get="{{ h.url_for('issues.init_modal') }}"
                 hx-target=".issues-ticket-modal-body"
                 hx-trigger="click">
-                <i class="fa fa-question-circle"></i>
-            </a>
+                <i class="fa fa-question-circle" aria-hidden="true"></i>
+            </button>
         </li>
     {% endif %}
 

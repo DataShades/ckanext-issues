@@ -53,6 +53,17 @@ class TestNotifications:
         assert any(sysadmin["email"] in r for r in recipients)
         assert all("New support ticket" in b for b in _bodies(mail_server))
 
+    @new_ticket
+    def test_new_ticket_submitted_date_is_human_readable(self, mail_server):
+        factories.Sysadmin()
+        author = factories.User()
+
+        ticket = call_action("issues_ticket_create", author_id=author["id"], **TICKET)
+
+        body = _bodies(mail_server)[0]
+        assert ticket["created_at"] not in body
+        assert tk.h.render_datetime(ticket["created_at"], with_hours=True) in body
+
     def test_new_ticket_notification_is_off_by_default(self, mail_server):
         factories.Sysadmin()
         author = factories.User()

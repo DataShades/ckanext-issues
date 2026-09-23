@@ -2,9 +2,16 @@
     <div class="into-text mb-3">
         <h4>{{ title }}</h4>
         <div class="small-text">{{ message }}</div>
+
+        {% if ticket %}
+            <div class="mt-3">
+                <a class="btn btn-primary" href="{{ h.url_for('issues.ticket_read', ticket_id=ticket.id) }}">{{ _("View ticket") }}</a>
+                <a class="btn btn-outline-secondary" href="{{ h.url_for('issues.my_tickets') }}">{{ _("My tickets") }}</a>
+            </div>
+        {% endif %}
     </div>
 
-    <button type="button" class="btn btn-default float-end" data-bs-dismiss="modal" aria-label="Close">
+    <button type="button" class="btn btn-secondary float-end" data-bs-dismiss="modal">
         {{ _("Got it") }}
     </button>
 </div>

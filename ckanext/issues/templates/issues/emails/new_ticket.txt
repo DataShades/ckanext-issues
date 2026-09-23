@@ -10,7 +10,7 @@
 ────────────────────────────────────────
   {{ _('Category') }}: {{ ticket.category }}
   {{ _('Status') }}: {{ ticket.status }}
-  {{ _('Submitted') }}: {{ ticket.created_at }}
+  {{ _('Submitted') }}: {{ h.render_datetime(ticket.created_at, with_hours=True) }}
   {{ _('Author') }}: {{ ticket.author.display_name }}
 ────────────────────────────────────────
 
