@@ -5,7 +5,8 @@
 {% set data = data or {} %}
 {% set errors = errors or {} %}
 
-<form id="add-ticket-form" hx-post="{{ h.url_for('issues.add_ticket') }}" hx-target=".issues-ticket-modal-body">
+<form id="add-ticket-form" hx-post="{{ h.url_for('issues.add_ticket') }}" hx-target=".issues-ticket-modal-body"
+      hx-disabled-elt="find button[type='submit']">
     {{ h.csrf_input() }}
 
     {% if form_error %}
@@ -27,5 +28,6 @@
         <button class="btn btn-primary" type="submit">
             {{ _('Submit') }}
         </button>
+        <span class="spinner-border spinner-border-sm htmx-indicator ms-2" aria-hidden="true"></span>
     </div>
 </form>

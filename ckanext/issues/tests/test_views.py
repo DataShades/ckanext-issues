@@ -478,6 +478,19 @@ class TestFrontend:
 
         assert 'id="issues-ticket-modal"' in body
 
+    def test_htmx_controls_disable_themselves_while_pending(self, app, ticket, sysadmin):
+        _add_message(ticket["id"], sysadmin["id"])
+
+        modal = app.get(tk.url_for("issues.init_modal"), headers=_auth(sysadmin["id"])).body
+        page = app.get(
+            tk.url_for("issues.ticket_read", ticket_id=ticket["id"]),
+            headers=_auth(sysadmin["id"]),
+        ).body
+
+        assert "hx-disabled-elt" in modal
+        # reply, assign, close, delete ticket, message delete + edit
+        assert page.count("hx-disabled-elt") == 6
+
     def test_edit_controls_only_on_own_messages(self, app, ticket, sysadmin):
         own = _add_message(ticket["id"], ticket["author"]["id"])
         other = _add_message(ticket["id"], sysadmin["id"])

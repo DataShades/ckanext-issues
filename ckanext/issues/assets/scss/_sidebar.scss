@@ -84,6 +84,12 @@
     background: var(--bs-tertiary-bg, #f8f9fa);
   }
 
+  // Set by hx-disabled-elt while the request is in flight
+  &:disabled {
+    cursor: progress;
+    opacity: 0.65;
+  }
+
   // Semantic colour modifiers
   &.act-warning { color: #f59e0b; }
   &.act-success { color: #22c55e; }
