@@ -345,6 +345,22 @@ class TestTableContent:
         assert {first["subject"], second["subject"]} <= set(rows)
         assert first["author"]["name"] in rows[first["subject"]]["author_name"]
 
+    def test_admin_list_formats_status_and_user_links(self, app, ticket, sysadmin):
+        call_action("issues_ticket_assign", id=ticket["id"], assignee_id=sysadmin["id"])
+
+        resp = app.get(tk.url_for("issues_admin.list"), headers=_auth(sysadmin["id"], XHR))
+        row = next(r for r in resp.json["data"] if r["subject"] == ticket["subject"])
+
+        assert 'class="badge bg-success text-white">Open<' in row["status"]
+        assert tk.url_for("user.read", id=ticket["author"]["name"]) in row["author_name"]
+        assert tk.url_for("user.read", id=sysadmin["name"]) in row["assignee_name"]
+
+    def test_admin_list_unassigned_ticket_has_empty_assignee(self, app, ticket, sysadmin):
+        resp = app.get(tk.url_for("issues_admin.list"), headers=_auth(sysadmin["id"], XHR))
+        row = next(r for r in resp.json["data"] if r["subject"] == ticket["subject"])
+
+        assert not row["assignee_name"]
+
 
 class TestAdminBlueprint:
     def test_sysadmin_sees_the_dashboard(self, app, sysadmin):

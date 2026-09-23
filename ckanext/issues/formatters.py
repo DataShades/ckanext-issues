@@ -1,22 +1,29 @@
 from __future__ import annotations
 
+from markupsafe import escape
+
 import ckan.plugins.toolkit as tk
-from ckan import model
 
 from ckanext.tables.shared import FormatterResult, Options, Value, formatters
 
+from ckanext.issues.model import Ticket
+
+_STATUS_BADGE_CLASSES = {
+    Ticket.Status.opened: "bg-success",
+    Ticket.Status.closed: "bg-secondary",
+}
+
 
 class StatusFormatter(formatters.BaseFormatter):
-    """Formatter for the status column."""
+    """Render the ticket status as a coloured badge."""
 
     def format(self, value: Value, options: Options) -> FormatterResult:  # noqa: ARG002
-        """Format the status value."""
-        return tk.literal(
-            tk.render(
-                "issues/formatters/status.html",
-                extra_vars={"value": value},
-            ),
-        )
+        badge_class = _STATUS_BADGE_CLASSES.get(str(value))
+        if not badge_class:
+            return ""
+
+        label = tk._("Open") if value == Ticket.Status.opened else tk._("Closed")
+        return tk.literal(f'<span class="badge {badge_class} text-white">{escape(label)}</span>')
 
 
 class UserNameLinkFormatter(formatters.BaseFormatter):
@@ -26,12 +33,11 @@ class UserNameLinkFormatter(formatters.BaseFormatter):
     the SQL query via ``COALESCE(fullname, name)``), so the column can be
     made filterable without confusing users with UUID searches.
 
-    The actual user UUID is read from the same row under the key specified by
-    the ``id_field`` option (e.g. ``"author_id"``), which is used to look up
-    the user record for URL-building.
+    The profile URL is built from the user's login name, which the query
+    selects into the row as well, so no per-row user lookup is needed.
 
     Options:
-        - ``id_field`` (str) - Row key that holds the user UUID.
+        - ``name_field`` (str) - Row key that holds the user's login name.
           **Required.**
         - ``maxlength`` (int) - Clip display name to this length. Default 20.
         - ``avatar`` (int) - Avatar placeholder size in pixels. Default 20.
@@ -41,9 +47,8 @@ class UserNameLinkFormatter(formatters.BaseFormatter):
         if not value:
             return ""
 
-        id_field = options.get("id_field")
-        user_id = self.initial_row.get(id_field) if id_field else None
-        user = model.User.get(user_id) if user_id else None
+        name_field = options.get("name_field")
+        user_name = self.initial_row.get(name_field) if name_field else None
 
         maxlength: int = options.get("maxlength") or 20
         avatar: int = options.get("avatar") or 20
@@ -52,12 +57,13 @@ class UserNameLinkFormatter(formatters.BaseFormatter):
         if len(display_name) > maxlength:
             display_name = display_name[:maxlength] + "..."
 
-        icon = tk.h.snippet(
-            "user/snippets/placeholder.html",
-            size=avatar,
-            user_name=display_name,
+        icon = (
+            f'<img class="user-image" width="{avatar}" height="{avatar}" '
+            f'src="{escape(tk.h.url_for_static("/base/images/placeholder-user.png"))}" '
+            f'alt="{escape(display_name)}" />'
+        )
+        link = (
+            tk.h.link_to(display_name, tk.h.url_for("user.read", id=user_name)) if user_name else escape(display_name)
         )
 
-        link = tk.h.link_to(display_name, tk.h.url_for("user.read", id=user.name)) if user else display_name
-
-        return tk.h.literal(f"{icon} {link}")
+        return tk.literal(f"{icon} {link}")

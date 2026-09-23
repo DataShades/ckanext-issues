@@ -19,8 +19,8 @@ def _build_support_tickets_stmt() -> sql.Select:
     We join the CKAN User table twice (author + assignee) and expose
     COALESCE(fullname, name) as ``author_name`` / ``assignee_name`` so
     that column header filters operate on human-readable names rather
-    than raw UUIDs.  The raw ID columns are included as hidden columns
-    so that formatters can still build profile links.
+    than raw UUIDs.  The login names are included as hidden columns so
+    that formatters can build profile links without a per-row lookup.
 
     Datetime columns are pre-formatted as ISO-style strings
     (``YYYY-MM-DD HH24:MI``) so they sort correctly as plain strings
@@ -40,10 +40,10 @@ def _build_support_tickets_stmt() -> sql.Select:
             Ticket.category,
             func.to_char(Ticket.created_at, "YYYY-MM-DD HH24:MI").label("created_at"),
             func.to_char(Ticket.updated_at, "YYYY-MM-DD HH24:MI").label("updated_at"),
-            Ticket.author_id,
-            Ticket.assignee_id,
             author_display,
             assignee_display,
+            author_alias.name.label("author_login"),
+            assignee_alias.name.label("assignee_login"),
         )
         .outerjoin(author_alias, Ticket.author_id == author_alias.id)
         .outerjoin(assignee_alias, Ticket.assignee_id == assignee_alias.id)
@@ -68,13 +68,13 @@ class SupportTable(t.TableDefinition):
                 t.ColumnDefinition(
                     field="author_name",
                     title=tk._("Author"),
-                    formatters=[(sf.UserNameLinkFormatter, {"id_field": "author_id"})],
+                    formatters=[(sf.UserNameLinkFormatter, {"name_field": "author_login"})],
                     tabulator_formatter="html",
                 ),
                 t.ColumnDefinition(
                     field="assignee_name",
                     title=tk._("Assignee"),
-                    formatters=[(sf.UserNameLinkFormatter, {"id_field": "assignee_id"})],
+                    formatters=[(sf.UserNameLinkFormatter, {"name_field": "assignee_login"})],
                     tabulator_formatter="html",
                 ),
                 t.ColumnDefinition(field="category", title=tk._("Category")),
@@ -155,10 +155,9 @@ class UserTicketTable(t.TableDefinition):
     """Table for displaying tickets created by the current user."""
 
     def __init__(self) -> None:
-        user_id = tk.g.userobj.id if tk.g.userobj else None
-
-        if not user_id:
-            tk.abort(404, tk._("User not found"))
+        # Access (authenticated users only) is enforced by check_access below
+        # and the blueprint's before_request; an anonymous user matches no rows.
+        user_id = tk.current_user.id if tk.current_user.is_authenticated else None
 
         stmt = (
             select(
