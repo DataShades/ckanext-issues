@@ -7,6 +7,15 @@ issues-js:
     preload:
       - base/main
 
+issues-thread-js:
+  filter: rjsmin
+  output: ckanext-issues/%(version)s-issues-thread.js
+  contents:
+    - js/issues-thread.js
+  extra:
+    preload:
+      - base/main
+
 issues-css:
   filter: cssrewrite
   output: ckanext-issues/%(version)s-issues.css

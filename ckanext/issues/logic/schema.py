@@ -13,14 +13,15 @@ if TYPE_CHECKING:
 @validator_args
 def ticket_create(
     not_missing: types.Validator,
+    not_empty: types.Validator,
     unicode_safe: types.Validator,
     user_id_or_name_exists: types.Validator,
     issues_category_validator: types.Validator,
 ) -> types.Schema:
     return {
-        "subject": [not_missing, unicode_safe],
+        "subject": [not_empty, unicode_safe],
         "category": [not_missing, unicode_safe, issues_category_validator],
-        "text": [not_missing, unicode_safe],
+        "text": [not_empty, unicode_safe],
         "author_id": [not_missing, unicode_safe, user_id_or_name_exists],
     }
 
@@ -92,6 +93,7 @@ def ticket_update(
 @validator_args
 def message_create(
     not_missing: types.Validator,
+    not_empty: types.Validator,
     unicode_safe: types.Validator,
     user_id_or_name_exists: types.Validator,
     ticket_id_exists: types.Validator,
@@ -99,7 +101,7 @@ def message_create(
     return {
         "ticket_id": [not_missing, unicode_safe, ticket_id_exists],
         "author_id": [not_missing, unicode_safe, user_id_or_name_exists],
-        "content": [not_missing, unicode_safe],
+        "content": [not_empty, unicode_safe],
     }
 
 
@@ -117,10 +119,11 @@ def message_delete(
 @validator_args
 def message_update(
     not_missing: types.Validator,
+    not_empty: types.Validator,
     unicode_safe: types.Validator,
     message_id_exists: types.Validator,
 ) -> types.Schema:
     return {
         "id": [not_missing, unicode_safe, message_id_exists],
-        "content": [not_missing, unicode_safe],
+        "content": [not_empty, unicode_safe],
     }

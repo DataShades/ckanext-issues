@@ -1,6 +1,6 @@
 {% import 'macros/form.html' as form %}
 
-<div class="ticket-read-wrap">
+<div class="ticket-read-wrap" data-module="issues-thread">
 
     {# ── Main column ── #}
     <div class="ticket-main">
@@ -46,11 +46,7 @@
 
         {# Original ticket body #}
         <div class="ticket-body-card">
-            {% if 'wysiwyg' in g.plugins %}
-                {{ h.wysiwyg_sanitize_html(ticket.text) | safe }}
-            {% else %}
-                {{ h.render_markdown(ticket.text) }}
-            {% endif %}
+            {{ h.render_markdown(ticket.text) }}
         </div>
 
         {% snippet "issues/messages_container.html", ticket=ticket %}
@@ -71,6 +67,8 @@
 
                             {{ form.markdown('content', id="reply-textarea", label=_("Comment"), value='', placeholder=_('Write your reply…'), attrs={'class': 'form-control', 'oninput': "this.style.height='auto';this.style.height=this.scrollHeight+'px';document.getElementById('reply-char-count').textContent=this.value.length;" })}}
 
+                            <div id="reply-form-errors" aria-live="polite"></div>
+
                             <div class="reply-footer d-flex justify-content-between mt-3 align-items-center">
                                 <span class="char-count text-muted">
                                     <span id="reply-char-count">0</span> {{ _('characters') }}
@@ -86,7 +84,13 @@
                 <div class="ticket-closed-notice">
                     <i class="fa fa-lock"></i>
                     <strong>{{ _('This ticket is closed.') }}</strong>
-                    <p class="mb-0 mt-1 small">{{ _('Reopen the ticket to add new replies.') }}</p>
+                    <p class="mb-0 mt-1 small">
+                        {% if h.check_access('issues_ticket_update', {'id': ticket.id}) %}
+                            {{ _('Reopen the ticket to add new replies.') }}
+                        {% else %}
+                            {{ _('Open a new ticket if you need further help.') }}
+                        {% endif %}
+                    </p>
                 </div>
             {% endif %}
         </div>

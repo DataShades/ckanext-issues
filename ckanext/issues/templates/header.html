@@ -23,10 +23,10 @@
                 href="#"
                 title="{{ _('Support') }}"
                 data-bs-toggle="modal"
-                data-bs-target="#create-ticket-modal"
+                data-bs-target="#issues-ticket-modal"
                 {#} the modal is in page.html {#}
                 hx-get="{{ h.url_for('issues.init_modal') }}"
-                hx-target=".ap-ticket-data"
+                hx-target=".issues-ticket-modal-body"
                 hx-trigger="click">
                 <i class="fa fa-question-circle"></i>
             </a>

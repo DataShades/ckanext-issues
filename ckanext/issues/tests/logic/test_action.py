@@ -238,6 +238,15 @@ class TestMessageCreate:
                 content="This should fail",
             )
 
+    def test_create_empty_message_is_rejected(self, ticket):
+        with pytest.raises(tk.ValidationError, match="Missing value"):
+            call_action(
+                "issues_message_create",
+                ticket_id=ticket["id"],
+                author_id=ticket["author"]["id"],
+                content="",
+            )
+
     def test_create_message_on_nonexistent_ticket(self, user):
         """Test creating a message on a non-existent ticket."""
         with pytest.raises(tk.ValidationError, match="Ticket not found"):

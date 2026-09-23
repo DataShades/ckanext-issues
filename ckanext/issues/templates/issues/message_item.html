@@ -1,5 +1,11 @@
-{% set _ticket = ticket if ticket is defined else none %}
-{% set is_author = _ticket is not none and message.author.id == _ticket.author.id %}
+{#
+    Mirrors the issues_message_update / issues_message_delete auth rules
+    (own message on an open ticket; sysadmins always) without a
+    check_access round-trip per message.
+#}
+{% set is_author = message.author.id == ticket.author.id %}
+{% set can_manage = ticket.status == 'opened'
+    and (current_user.sysadmin or message.author.id == current_user.id) %}
 {% set author_initial = (message.author.display_name or message.author.name or '?') | first | upper %}
 
 <div class="message-card" id="message-{{ message.id }}">
@@ -30,17 +36,13 @@
             </div>
 
             <div class="msg-actions">
-                {% if h.check_access('issues_message_update', {'id': message.id})
-                    and (_ticket is none or _ticket.status == 'opened') %}
+                {% if can_manage %}
                     <button class="btn btn-sm btn-outline-secondary"
-                            onclick="toggleMsgEdit({{ message.id }})"
+                            data-issues-toggle-edit="{{ message.id }}"
                             title="{{ _('Edit') }}">
                         <i class="fa fa-pencil"></i>
                     </button>
-                {% endif %}
 
-                {% if h.check_access('issues_message_delete', {'id': message.id})
-                    and (_ticket is none or _ticket.status == 'opened')  %}
                     <button class="btn btn-sm btn-danger"
                             hx-post="{{ h.url_for('issues.delete_message', message_id=message.id) }}"
                             hx-target="#messages-container-outer"
@@ -55,47 +57,35 @@
 
         <div class="msg-bubble-body">
             <div id="message-content-{{ message.id }}">
-                {% if 'wysiwyg' in g.plugins %}
-                    {{ h.wysiwyg_sanitize_html(message.content) | safe }}
-                {% else %}
-                    {{ h.render_markdown(message.content) }}
-                {% endif %}
+                {{ h.render_markdown(message.content) }}
             </div>
 
-            <div id="message-edit-form-{{ message.id }}" style="display:none;">
-                <form hx-post="{{ h.url_for('issues.update_message', message_id=message.id) }}"
-                      hx-target="#message-{{ message.id }}"
-                      hx-swap="outerHTML">
-                    {{ h.csrf_input() }}
+            {% if can_manage %}
+                <div id="message-edit-form-{{ message.id }}" style="display:none;">
+                    <form hx-post="{{ h.url_for('issues.update_message', message_id=message.id) }}"
+                          hx-target="#message-{{ message.id }}"
+                          hx-swap="outerHTML">
+                        {{ h.csrf_input() }}
 
-                    <div class="mb-2">
-                        <textarea name="content"
-                                  class="form-control"
-                                  rows="4"
-                                  required>{{ message.content }}</textarea>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="fa fa-check"></i> {{ _('Save') }}
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm"
-                                onclick="toggleMsgEdit({{ message.id }})">
-                            {{ _('Cancel') }}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                        <div class="mb-2">
+                            <textarea name="content"
+                                      class="form-control"
+                                      rows="4"
+                                      required>{{ message.content }}</textarea>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fa fa-check"></i> {{ _('Save') }}
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    data-issues-toggle-edit="{{ message.id }}">
+                                {{ _('Cancel') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
         </div>
 
     </div>
 </div>
-
-<script>
-    function toggleMsgEdit(id) {
-        var c = document.getElementById('message-content-' + id);
-        var f = document.getElementById('message-edit-form-' + id);
-        var showForm = c.style.display !== 'none';
-        c.style.display = showForm ? 'none' : 'block';
-        f.style.display = showForm ? 'block' : 'none';
-    }
-</script>

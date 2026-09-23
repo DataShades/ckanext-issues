@@ -130,6 +130,28 @@ class TestAddMessageView:
         assert resp.status_code == 200
         assert _messages(ticket["id"])[-1]["content"] == "a reply"
 
+    def test_successful_reply_tells_the_client_to_clear_the_form(self, app, ticket):
+        resp = app.post(
+            tk.url_for("issues.add_message", ticket_id=ticket["id"]),
+            data={"content": "a reply"},
+            headers=_auth(ticket["author"]["id"], HX),
+        )
+
+        assert resp.headers.get("HX-Trigger") == "issues:message-added"
+
+    def test_failed_reply_shows_the_error_inside_the_form(self, app, ticket):
+        resp = app.post(
+            tk.url_for("issues.add_message", ticket_id=ticket["id"]),
+            data={"content": ""},
+            headers=_auth(ticket["author"]["id"], HX),
+        )
+
+        assert "HX-Trigger" not in resp.headers
+        assert resp.headers.get("HX-Retarget") == "#reply-form-errors"
+        assert resp.headers.get("HX-Reswap") == "innerHTML"
+        assert "Missing value" in resp.body
+        assert "messages-container-outer" not in resp.body
+
     def test_sysadmin_can_reply(self, app, ticket, sysadmin):
         app.post(
             tk.url_for("issues.add_message", ticket_id=ticket["id"]),
@@ -370,3 +392,63 @@ class TestHeader:
 
         assert tk.url_for("issues.init_modal") in body
         assert tk.url_for("issues_admin.list") in body
+
+
+class TestFrontend:
+    def test_modal_is_not_injected_for_anonymous(self, app):
+        body = app.get(tk.url_for("home.index")).body
+
+        assert 'id="issues-ticket-modal"' not in body
+
+    def test_modal_is_injected_for_authenticated_user(self, app, user):
+        body = app.get(tk.url_for("home.index"), headers=_auth(user["id"])).body
+
+        assert 'id="issues-ticket-modal"' in body
+
+    def test_edit_controls_only_on_own_messages(self, app, ticket, sysadmin):
+        own = _add_message(ticket["id"], ticket["author"]["id"])
+        other = _add_message(ticket["id"], sysadmin["id"])
+
+        body = app.get(
+            tk.url_for("issues.ticket_read", ticket_id=ticket["id"]),
+            headers=_auth(ticket["author"]["id"]),
+        ).body
+
+        assert f'data-issues-toggle-edit="{own["id"]}"' in body
+        assert f'data-issues-toggle-edit="{other["id"]}"' not in body
+        assert "toggleMsgEdit" not in body
+
+    def test_closed_ticket_has_no_edit_controls_and_no_reopen_hint(self, app, ticket):
+        message = _add_message(ticket["id"], ticket["author"]["id"])
+        call_action("issues_ticket_update", id=ticket["id"], status="closed")
+
+        body = app.get(
+            tk.url_for("issues.ticket_read", ticket_id=ticket["id"]),
+            headers=_auth(ticket["author"]["id"]),
+        ).body
+
+        assert f'data-issues-toggle-edit="{message["id"]}"' not in body
+        assert "Reopen the ticket" not in body
+        assert "Open a new ticket" in body
+
+    def test_create_errors_are_readable(self, app, user):
+        resp = app.post(
+            tk.url_for("issues.add_ticket"),
+            data={"subject": "Help", "category": "no-such-category", "text": "please"},
+            headers=_auth(user["id"]),
+        )
+
+        assert "is not allowed" in resp.body
+        assert "{&#39;" not in resp.body
+
+    def test_htmx_error_triggers_a_refresh(self, app, ticket, user):
+        message = _add_message(ticket["id"], ticket["author"]["id"])
+
+        resp = app.post(
+            tk.url_for("issues.delete_message", message_id=message["id"]),
+            headers=_auth(user["id"], HX),
+        )
+
+        assert resp.status_code == 200
+        assert resp.headers.get("HX-Refresh") == "true"
+        assert len(_messages(ticket["id"])) == 1

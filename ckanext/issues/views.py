@@ -41,6 +41,31 @@ def _authenticated_before_request() -> None:
         tk.abort(403, tk._("You must be logged in to access this page"))
 
 
+def _error_message(error: Exception) -> str:
+    """Human-readable text for an action error."""
+    if isinstance(error, tk.ValidationError):
+        return "; ".join(f"{field}: {msg}" for field, msg in error.error_summary.items())
+
+    if isinstance(error, tk.NotAuthorized):
+        return str(error) or tk._("You are not allowed to do this")
+
+    return str(error)
+
+
+def _error_response(error: Exception) -> Response:
+    """Flash the error and make sure the user actually sees it.
+
+    htmx doesn't swap 4xx responses, so for htmx requests reply 200 with
+    ``HX-Refresh`` and let the reloaded page render the flash.
+    """
+    tk.h.flash_error(_error_message(error))
+
+    if tk.request.headers.get("HX-Request"):
+        return Response("", status=200, headers={"HX-Refresh": "true"})
+
+    return Response("", status=400)
+
+
 issues_admin.before_request(_sysadmin_before_request)
 issues.before_request(_authenticated_before_request)
 
@@ -62,7 +87,7 @@ class AddTicketView(MethodView):
         except (tk.ObjectNotFound, tk.ValidationError) as e:
             return self._get_modal_body(
                 title=tk._("An error occurred while creating the ticket"),
-                message=str(e),
+                message=_error_message(e),
             )
 
         return self._get_modal_body(
@@ -81,7 +106,7 @@ class AddTicketView(MethodView):
 
 
 class AddMessageView(MethodView):
-    def post(self, ticket_id: str) -> str:
+    def post(self, ticket_id: str) -> Response | str:
         data_dict = parse_params(tk.request.form)
 
         try:
@@ -94,12 +119,11 @@ class AddMessageView(MethodView):
                 },
             )
         except (tk.ObjectNotFound, tk.ValidationError, tk.NotAuthorized) as e:
-            return tk.render(
-                "issues/ticket_modal_response.html",
-                extra_vars={
-                    "title": tk._("Error adding message"),
-                    "message": str(e),
-                },
+            # Show the error inside the reply form instead of swapping it over
+            # the thread.
+            return Response(
+                tk.render("issues/reply_form_error.html", extra_vars={"message": _error_message(e)}),
+                headers={"HX-Retarget": "#reply-form-errors", "HX-Reswap": "innerHTML"},
             )
 
         ticket: DictizedTicket = tk.get_action("issues_ticket_show")(
@@ -107,9 +131,11 @@ class AddMessageView(MethodView):
             {"id": ticket_id},
         )
 
-        return tk.render(
-            "issues/messages_container.html",
-            extra_vars={"ticket": ticket},
+        # The reply form lives outside the swapped thread; tell the client to
+        # clear it. Only sent on success, so a failed post keeps the draft.
+        return Response(
+            tk.render("issues/messages_container.html", extra_vars={"ticket": ticket}),
+            headers={"HX-Trigger": "issues:message-added"},
         )
 
 
@@ -124,8 +150,7 @@ class DeleteMessageView(MethodView):
                 {"id": message_id},
             )
         except (tk.ObjectNotFound, tk.ValidationError, tk.NotAuthorized) as e:
-            tk.h.flash_error(str(e))
-            return Response("", status=400)
+            return _error_response(e)
 
         # Re-render the whole thread so the reply counter and the empty state
         # stay in sync.
@@ -155,7 +180,7 @@ class UpdateMessageView(MethodView):
                 "issues/ticket_modal_response.html",
                 extra_vars={
                     "title": tk._("Error updating message"),
-                    "message": str(e),
+                    "message": _error_message(e),
                 },
             )
 
@@ -200,8 +225,7 @@ class TicketUpdateStatusView(MethodView):
                 {"id": ticket_id, "status": new_status},
             )
         except (tk.ObjectNotFound, tk.ValidationError, tk.NotAuthorized) as e:
-            tk.h.flash_error(str(e))
-            return Response("", status=400)
+            return _error_response(e)
 
         redirect_url: str = tk.url_for("issues.ticket_read", ticket_id=ticket_id)
 
@@ -226,8 +250,7 @@ class TicketAssignView(MethodView):
                 action_data,
             )
         except (tk.ObjectNotFound, tk.ValidationError, tk.NotAuthorized) as e:
-            tk.h.flash_error(str(e))
-            return Response("", status=400)
+            return _error_response(e)
 
         redirect_url: str = tk.url_for("issues.ticket_read", ticket_id=ticket_id)
 

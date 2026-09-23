@@ -1,16 +1,16 @@
 {% import "macros/form.html" as form %}
 
 <!-- Modal -->
-<div class="modal ticket-modal fade" id="create-ticket-modal" tabindex="-1" role="dialog" aria-labelledby="create-ticket">
+<div class="modal ticket-modal fade" id="issues-ticket-modal" tabindex="-1" role="dialog" aria-labelledby="issues-ticket-modal-title">
     <div class="modal-dialog" role="document" data-module="issues-modal-htmx">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ _("Create support ticket") }}</h5>
+                <h5 class="modal-title" id="issues-ticket-modal-title">{{ _("Create support ticket") }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
-                <div class="ap-ticket-data">
+                <div class="issues-ticket-modal-body">
                 </div>
             </div> <!-- modal-body -->
         </div>

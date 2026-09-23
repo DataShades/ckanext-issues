@@ -13,6 +13,16 @@
 
 {% block secondary %}{% endblock %}
 
+{% block styles %}
+    {{ super() }}
+    {% asset 'issues/issues-css' %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {% asset 'issues/issues-thread-js' %}
+{% endblock %}
+
 {% block primary %}
     <div class="primary col-md-12" role="main">
         <div class="my-2 py-1">
