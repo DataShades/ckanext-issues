@@ -8,7 +8,7 @@
     and (current_user.sysadmin or message.author.id == current_user.id) %}
 {% set author_initial = (message.author.display_name or message.author.name or '?') | first | upper %}
 
-<div class="message-card" id="message-{{ message.id }}">
+<div class="message-card{{ ' is-new' if is_new }}" id="message-{{ message.id }}"{% if is_new %} tabindex="-1"{% endif %}>
 
     <div class="msg-avatar {{ 'av-author' if is_author else 'av-staff' }}"
          title="{{ message.author.display_name or message.author.name }}">
@@ -25,7 +25,7 @@
             <div class="msg-meta">
                 {% if message.updated_at %}
                     <span class="msg-edited">
-                        <i class="fa fa-pencil"></i> {{ _('edited') }}
+                        <i class="fa fa-pencil" aria-hidden="true"></i> {{ _('edited') }}
                     </span>
                 {% endif %}
                 <span class="msg-time">
@@ -37,20 +37,27 @@
 
             <div class="msg-actions">
                 {% if can_manage %}
-                    <button class="btn btn-sm btn-outline-secondary"
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            id="message-edit-toggle-{{ message.id }}"
                             data-issues-toggle-edit="{{ message.id }}"
+                            aria-controls="message-edit-form-{{ message.id }}"
+                            aria-expanded="false"
+                            aria-label="{{ _('Edit message') }}"
                             title="{{ _('Edit') }}">
-                        <i class="fa fa-pencil"></i>
+                        <i class="fa fa-pencil" aria-hidden="true"></i>
                     </button>
 
-                    <button class="btn btn-sm btn-danger"
+                    <button type="button"
+                            class="btn btn-sm btn-danger"
                             hx-post="{{ h.url_for('issues.delete_message', message_id=message.id) }}"
                             hx-target="#messages-container-outer"
                             hx-swap="outerHTML swap:0.1s"
                             hx-confirm="{{ _('Delete this message?') }}"
                             hx-disabled-elt="this"
+                            aria-label="{{ _('Delete message') }}"
                             title="{{ _('Delete') }}">
-                        <i class="fa fa-trash"></i>
+                        <i class="fa fa-trash" aria-hidden="true"></i>
                     </button>
                 {% endif %}
             </div>
@@ -62,7 +69,7 @@
             </div>
 
             {% if can_manage %}
-                <div id="message-edit-form-{{ message.id }}" style="display:none;">
+                <div id="message-edit-form-{{ message.id }}" data-issues-edit-form="{{ message.id }}" hidden>
                     <form hx-post="{{ h.url_for('issues.update_message', message_id=message.id) }}"
                           hx-target="#message-{{ message.id }}"
                           hx-swap="outerHTML"
@@ -73,11 +80,14 @@
                             <textarea name="content"
                                       class="form-control"
                                       rows="4"
+                                      aria-label="{{ _('Edit message') }}"
+                                      aria-keyshortcuts="Control+Enter Meta+Enter Escape"
+                                      data-issues-autogrow
                                       required>{{ message.content }}</textarea>
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="fa fa-check"></i> {{ _('Save') }}
+                                <i class="fa fa-check" aria-hidden="true"></i> {{ _('Save') }}
                             </button>
                             <button type="button" class="btn btn-outline-secondary btn-sm"
                                     data-issues-toggle-edit="{{ message.id }}">

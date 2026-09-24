@@ -13,11 +13,11 @@
             <div class="ticket-badge-row">
                 {% if ticket.status == 'opened' %}
                     <span class="t-status-badge status-opened">
-                        <i class="fa fa-circle" style="font-size:.5rem;"></i> {{ _('Open') }}
+                        <i class="fa fa-circle" aria-hidden="true"></i> {{ _('Open') }}
                     </span>
                 {% else %}
                     <span class="t-status-badge status-closed">
-                        <i class="fa fa-circle" style="font-size:.5rem;"></i> {{ _('Closed') }}
+                        <i class="fa fa-circle" aria-hidden="true"></i> {{ _('Closed') }}
                     </span>
                 {% endif %}
 
@@ -55,9 +55,10 @@
         <div class="reply-section">
             {% if ticket.status == 'opened' %}
                 <div class="reply-card">
-                    <div class="reply-card-head">
-                        <i class="fa fa-reply"></i> {{ _('Reply') }}
-                    </div>
+                    {# The card head doubles as the textarea label; the macro's own label is hidden. #}
+                    <label class="reply-card-head" for="reply-textarea">
+                        <i class="fa fa-reply" aria-hidden="true"></i> {{ _('Reply') }}
+                    </label>
                     <div class="reply-card-body">
                         <form id="reply-form"
                               hx-post="{{ h.url_for('issues.add_message', ticket_id=ticket.id) }}"
@@ -66,13 +67,13 @@
                               hx-disabled-elt="find button[type='submit']">
                             {{ h.csrf_input() }}
 
-                            {{ form.markdown('content', id="reply-textarea", label=_("Comment"), value='', placeholder=_('Write your reply…'), attrs={'class': 'form-control', 'oninput': "this.style.height='auto';this.style.height=this.scrollHeight+'px';document.getElementById('reply-char-count').textContent=this.value.length;" })}}
+                            {{ form.markdown('content', id="reply-textarea", label=_("Reply"), value='', placeholder=_('Write your reply…'), attrs={'class': 'form-control', 'data-issues-autogrow': '', 'aria-keyshortcuts': 'Control+Enter Meta+Enter'}) }}
 
                             <div id="reply-form-errors" aria-live="polite"></div>
 
                             <div class="reply-footer d-flex justify-content-between mt-3 align-items-center">
-                                <span class="char-count text-muted">
-                                    <span id="reply-char-count">0</span> {{ _('characters') }}
+                                <span class="reply-hint text-muted small">
+                                    {{ _('Ctrl+Enter to send') }}
                                 </span>
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="issues-spinner spinner-border spinner-border-sm htmx-indicator" aria-hidden="true"></span>
@@ -110,25 +111,6 @@
                 <i class="fa fa-info-circle"></i> {{ _('Details') }}
             </div>
             <dl class="sidebar-dl">
-                <dt>{{ _('Status') }}</dt>
-                <dd>
-                    {% if ticket.status == 'opened' %}
-                        <span class="t-status-badge status-opened">
-                            <i class="fa fa-circle" style="font-size:.5rem;"></i> {{ _('Open') }}
-                        </span>
-                    {% else %}
-                        <span class="t-status-badge status-closed">
-                            <i class="fa fa-circle" style="font-size:.5rem;"></i> {{ _('Closed') }}
-                        </span>
-                    {% endif %}
-                </dd>
-
-                <dt>{{ _('Category') }}</dt>
-                <dd><span class="t-category-chip">{{ ticket.category }}</span></dd>
-
-                <dt>{{ _('Author') }}</dt>
-                <dd>{{ h.linked_user(ticket.author.name, maxlength=30) }}</dd>
-
                 <dt>{{ _('Assignee') }}</dt>
                 <dd>
                     {% if h.check_access('issues_ticket_assign', {'id': ticket.id}) %}
@@ -156,22 +138,8 @@
                     {% endif %}
                 </dd>
 
-                <dt>{{ _('Created') }}</dt>
-                <dd>
-                    <time title="{{ h.render_datetime(ticket.created_at, with_hours=True) }}">
-                        {{ h.time_ago_from_timestamp(ticket.created_at) }}
-                    </time>
-                </dd>
-
                 <dt>{{ _('Last activity') }}</dt>
-                <dd>
-                    <time title="{{ h.render_datetime(ticket.updated_at, with_hours=True) }}">
-                        {{ h.time_ago_from_timestamp(ticket.updated_at) }}
-                    </time>
-                </dd>
-
-                <dt>{{ _('Replies') }}</dt>
-                <dd>{{ ticket.messages | length }}</dd>
+                <dd>{% snippet "issues/snippets/last_activity.html", ticket=ticket %}</dd>
             </dl>
         </div>
 

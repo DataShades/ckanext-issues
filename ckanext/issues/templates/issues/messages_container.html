@@ -1,9 +1,14 @@
+{#
+    ticket         - the dictized ticket
+    new_message_id - id of the reply that was just added (htmx reply response
+                     only); that message is the only one animated / focused
+#}
 <div id="messages-container-outer">
     <div class="thread-header">
-        <i class="fa fa-comments"></i>
+        <i class="fa fa-comments" aria-hidden="true"></i>
         {{ _('Conversation') }}
 
-        <span class="badge bg-secondary rounded-pill" style="font-size:.7rem;">
+        <span class="thread-count badge bg-secondary rounded-pill">
             {{ ticket.messages | length }}
         </span>
 
@@ -12,14 +17,19 @@
 
     <div id="messages-container">
         {% for message in ticket.messages %}
-            {% snippet "issues/message_item.html", message=message, ticket=ticket %}
+            {% snippet "issues/message_item.html", message=message, ticket=ticket, is_new=(new_message_id and message.id == new_message_id) %}
         {% else %}
             {% if ticket.status == 'opened' %}
                 <div class="thread-empty">
-                    <i class="fa fa-comments-o"></i>
+                    <i class="fa fa-comments-o" aria-hidden="true"></i>
                     <p class="mb-0">{{ _('No replies yet. Be the first to respond.') }}</p>
                 </div>
             {% endif %}
         {% endfor %}
     </div>
 </div>
+
+{# A reply bumps the ticket's activity; the sidebar sits outside the swapped thread. #}
+{% if new_message_id %}
+    {% snippet "issues/snippets/last_activity.html", ticket=ticket, oob=True %}
+{% endif %}

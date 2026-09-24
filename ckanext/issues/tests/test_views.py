@@ -138,7 +138,22 @@ class TestAddMessageView:
             headers=_auth(ticket["author"]["id"], HX),
         )
 
-        assert resp.headers.get("HX-Trigger") == "issues:message-added"
+        assert resp.headers.get("HX-Trigger-After-Settle") == "issues:message-added"
+
+    def test_successful_reply_marks_only_the_new_message_and_refreshes_activity(self, app, ticket):
+        _add_message(ticket["id"], ticket["author"]["id"], "earlier reply")
+
+        resp = app.post(
+            tk.url_for("issues.add_message", ticket_id=ticket["id"]),
+            data={"content": "a reply"},
+            headers=_auth(ticket["author"]["id"], HX),
+        )
+
+        new_id = _messages(ticket["id"])[-1]["id"]
+        assert resp.body.count("is-new") == 1
+        assert f'class="message-card is-new" id="message-{new_id}"' in resp.body
+        assert 'id="ticket-last-activity"' in resp.body
+        assert 'hx-swap-oob="true"' in resp.body
 
     def test_failed_reply_shows_the_error_inside_the_form(self, app, ticket):
         resp = app.post(
@@ -147,7 +162,7 @@ class TestAddMessageView:
             headers=_auth(ticket["author"]["id"], HX),
         )
 
-        assert "HX-Trigger" not in resp.headers
+        assert "HX-Trigger-After-Settle" not in resp.headers
         assert resp.headers.get("HX-Retarget") == "#reply-form-errors"
         assert resp.headers.get("HX-Reswap") == "innerHTML"
         assert "Missing value" in resp.body

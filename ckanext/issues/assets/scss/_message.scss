@@ -4,7 +4,10 @@
 // ==========================================================
 
 
-// ── Slide-in animation for HTMX-appended messages ──────
+// ── Slide-in animation for a freshly posted reply ──────
+//
+//  htmx swaps the whole thread, so only the message marked
+//  .is-new (the one just added) animates.
 
 @keyframes msgSlideIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -18,7 +21,22 @@
   display: flex;
   gap: 0.8rem;
   margin-bottom: 1rem;
-  animation: msgSlideIn 0.22s ease-out both;
+
+  &.is-new {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: msgSlideIn 0.22s ease-out both;
+    }
+
+    // Focused programmatically after posting; mark it on the bubble.
+    &:focus {
+      outline: none;
+    }
+
+    &:focus-visible .msg-bubble {
+      outline: 2px solid var(--bs-focus-ring-color, rgba(13, 110, 253, 0.25));
+      outline-offset: 2px;
+    }
+  }
 }
 
 

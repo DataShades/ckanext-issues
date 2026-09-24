@@ -125,7 +125,7 @@ class AddMessageView(MethodView):
         data_dict = parse_params(tk.request.form)
 
         try:
-            tk.get_action("issues_message_create")(
+            message: DictizedMessage = tk.get_action("issues_message_create")(
                 {"user": tk.g.user},
                 {
                     "ticket_id": ticket_id,
@@ -147,10 +147,14 @@ class AddMessageView(MethodView):
         )
 
         # The reply form lives outside the swapped thread; tell the client to
-        # clear it. Only sent on success, so a failed post keeps the draft.
+        # clear it and move to the new message once it is in the DOM. Only
+        # sent on success, so a failed post keeps the draft.
         return Response(
-            tk.render("issues/messages_container.html", extra_vars={"ticket": ticket}),
-            headers={"HX-Trigger": "issues:message-added"},
+            tk.render(
+                "issues/messages_container.html",
+                extra_vars={"ticket": ticket, "new_message_id": message["id"]},
+            ),
+            headers={"HX-Trigger-After-Settle": "issues:message-added"},
         )
 
 

@@ -104,6 +104,11 @@
 .t-status-badge {
   @extend %pill-base;
 
+  // Status dot
+  .fa-circle {
+    font-size: 0.5rem;
+  }
+
   &.status-opened {
     background: var(--ap-opened-bg);
     color: var(--ap-opened-color);
@@ -151,6 +156,10 @@
   font-weight: 700;
   color: var(--bs-body-color);
 
+  .thread-count {
+    font-size: 0.7rem;
+  }
+
   .thread-header-line {
     flex: 1;
     height: 1px;
@@ -195,11 +204,14 @@
     display: flex;
     align-items: center;
     gap: 0.45rem;
+    margin: 0;
   }
 
   .reply-card-body {
     padding: 1rem;
 
+    // The card head is the textarea's label; drop the macro's duplicate
+    // (display:none also keeps it out of the accessibility tree).
     .form-label {
         display: none;
     }

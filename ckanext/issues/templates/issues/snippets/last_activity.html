@@ -1,0 +1,12 @@
+{#
+    Sidebar "Last activity" timestamp.
+
+    ticket - the dictized ticket
+    oob    - render as an htmx out-of-band swap (for responses that only
+             replace the thread)
+#}
+<time id="ticket-last-activity"
+      {% if oob %}hx-swap-oob="true"{% endif %}
+      title="{{ h.render_datetime(ticket.updated_at, with_hours=True) }}">
+    {{ h.time_ago_from_timestamp(ticket.updated_at) }}
+</time>
