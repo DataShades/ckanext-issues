@@ -1,36 +1,98 @@
 // ==========================================================
 //  issues — Design tokens
-//  Exposed as CSS custom properties on :root so they're
-//  available globally (including in JS-generated HTML).
+//  Exposed as CSS custom properties so they're available
+//  globally (including in JS-generated HTML).
+//
+//  Colours come in a light and a dark set that follow the
+//  site's `data-theme` (on <html> or any ancestor). Every
+//  text/background pair is at least WCAG AA (4.5:1) on the
+//  surface it's used on.
+//
+//  Components never read --bs-* surface/text variables
+//  directly: a site theme may switch to dark without
+//  redefining them (midnight-blue only overrides
+//  --bs-secondary-color and --bs-border-color), which would
+//  leave white cards on a dark page. The light set maps to
+//  Bootstrap (with 5.1 fallbacks); the dark set uses the
+//  midnight-blue palette, preferring its --dm-* variables
+//  when present.
 // ==========================================================
 
-:root {
+:root,
+[data-theme="light"] {
+  // ── Surfaces & text ─────────────────────────────────
+  --issues-surface:     var(--bs-body-bg, #fff);
+  --issues-surface-alt: var(--bs-tertiary-bg, #f8f9fa);
+  --issues-text:        var(--bs-body-color, #212529);
+  --issues-text-muted:  var(--bs-secondary-color, #6c757d);
+  --issues-border:      var(--bs-border-color, #dee2e6);
+
   // ── Status: opened ──────────────────────────────────
-  --ap-opened-bg:     rgba(34, 197, 94, 0.18);
-  --ap-opened-color:  #86efac;
-  --ap-opened-border: rgba(34, 197, 94, 0.30);
+  --issues-opened-bg:     #dcfce7;
+  --issues-opened-color:  #166534;
+  --issues-opened-border: #bbf7d0;
 
   // ── Status: closed ──────────────────────────────────
-  --ap-closed-bg:     rgba(148, 163, 184, 0.14);
-  --ap-closed-color:  #94a3b8;
-  --ap-closed-border: rgba(148, 163, 184, 0.20);
+  --issues-closed-bg:     #f1f5f9;
+  --issues-closed-color:  #475569;
+  --issues-closed-border: #cbd5e1;
 
   // ── Category chip ───────────────────────────────────
-  --ap-cat-bg:     rgba(99, 102, 241, 0.18);
-  --ap-cat-color:  #a5b4fc;
-  --ap-cat-border: rgba(99, 102, 241, 0.25);
-
-  // ── Avatar / bubble accents ─────────────────────────
-  --ap-author-from: #0ea5e9;
-  --ap-author-to:   #0284c7;
-  --ap-staff-from:  #7c3aed;
-  --ap-staff-to:    #6d28d9;
+  --issues-cat-bg:     #e0e7ff;
+  --issues-cat-color:  #3730a3;
+  --issues-cat-border: #c7d2fe;
 
   // ── Ticket header card ──────────────────────────────
-  --ap-header-from: #1e293b;
-  --ap-header-to:   #0f172a;
+  --issues-header-bg:     var(--issues-surface-alt);
+  --issues-header-color:  var(--bs-emphasis-color, #000);
+  --issues-header-muted:  var(--bs-secondary-color, #5c636a);
+  --issues-header-border: var(--issues-border);
+  --issues-header-deco:   rgba(0, 0, 0, 0.03);
+
+  // ── Sidebar actions (on the page surface) ───────────
+  --issues-act-warning: #b45309;
+  --issues-act-success: #15803d;
+  --issues-act-danger:  #b91c1c;
+}
+
+[data-theme="dark"] {
+  --issues-surface:     var(--dm-surface, #141b2d);
+  --issues-surface-alt: var(--dm-surface-alt, #1c2540);
+  --issues-text:        var(--dm-text, #e6e9f0);
+  --issues-text-muted:  var(--dm-text-muted, #97a0b8);
+  --issues-border:      var(--dm-border, #2a3555);
+
+  --issues-opened-bg:     rgba(34, 197, 94, 0.18);
+  --issues-opened-color:  #86efac;
+  --issues-opened-border: rgba(34, 197, 94, 0.30);
+
+  --issues-closed-bg:     rgba(148, 163, 184, 0.14);
+  --issues-closed-color:  #cbd5e1;
+  --issues-closed-border: rgba(148, 163, 184, 0.25);
+
+  --issues-cat-bg:     rgba(99, 102, 241, 0.18);
+  --issues-cat-color:  #a5b4fc;
+  --issues-cat-border: rgba(99, 102, 241, 0.25);
+
+  --issues-header-bg:     linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  --issues-header-color:  #f8fafc;
+  --issues-header-muted:  #cbd5e1;
+  --issues-header-border: rgba(255, 255, 255, 0.08);
+  --issues-header-deco:   rgba(255, 255, 255, 0.04);
+
+  --issues-act-warning: #fbbf24;
+  --issues-act-success: #4ade80;
+  --issues-act-danger:  #f87171;
+}
+
+:root {
+  // ── Avatars (white initial on top, both themes) ─────
+  --issues-author-from: #0369a1;
+  --issues-author-to:   #075985;
+  --issues-staff-from:  #7c3aed;
+  --issues-staff-to:    #6d28d9;
 
   // ── Spacing / shape ─────────────────────────────────
-  --ap-radius:    10px;
-  --ap-radius-lg: 12px;
+  --issues-radius:    10px;
+  --issues-radius-lg: 12px;
 }

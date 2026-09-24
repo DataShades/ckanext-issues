@@ -57,12 +57,12 @@
 
   // Ticket author → blue
   &.av-author {
-    background: linear-gradient(135deg, var(--ap-author-from), var(--ap-author-to));
+    background: linear-gradient(135deg, var(--issues-author-from), var(--issues-author-to));
   }
 
   // Staff / other users → purple
   &.av-staff {
-    background: linear-gradient(135deg, var(--ap-staff-from), var(--ap-staff-to));
+    background: linear-gradient(135deg, var(--issues-staff-from), var(--issues-staff-to));
   }
 }
 
@@ -72,8 +72,10 @@
 .msg-bubble {
   flex: 1;
   min-width: 0;
-  border: 1px solid var(--bs-border-color, #dee2e6);
-  border-radius: var(--ap-radius);
+  background: var(--issues-surface);
+  color: var(--issues-text);
+  border: 1px solid var(--issues-border);
+  border-radius: var(--issues-radius);
   overflow: hidden;
 
   // ── Bubble header ────────────────────────────────────
@@ -83,15 +85,15 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.5rem 0.85rem;
-    background: var(--bs-tertiary-bg, #f8f9fa);
-    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+    background: var(--issues-surface-alt);
+    border-bottom: 1px solid var(--issues-border);
     gap: 0.5rem;
     flex-wrap: wrap;
 
     .msg-author {
       font-size: 0.82rem;
       font-weight: 700;
-      color: var(--bs-body-color);
+      color: var(--issues-text);
 
       a {
         color: inherit;
@@ -111,14 +113,14 @@
 
       .msg-time {
         font-size: 0.76rem;
-        color: var(--bs-secondary-color, #6c757d);
+        color: var(--issues-text-muted);
         white-space: nowrap;
       }
 
       .msg-edited {
         font-size: 0.72rem;
         font-style: italic;
-        color: var(--bs-secondary-color, #6c757d);
+        color: var(--issues-text-muted);
         display: flex;
         align-items: center;
         gap: 3px;

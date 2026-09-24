@@ -7,21 +7,22 @@
 // ── Card shell ─────────────────────────────────────────
 
 .sidebar-card {
-  background: var(--bs-body-bg, #fff);
-  border: 1px solid var(--bs-border-color, #dee2e6);
-  border-radius: var(--ap-radius);
+  background: var(--issues-surface);
+  color: var(--issues-text);
+  border: 1px solid var(--issues-border);
+  border-radius: var(--issues-radius);
   overflow: hidden;
   margin-bottom: 1rem;
 
   .sidebar-card-head {
     padding: 0.6rem 1rem;
-    background: var(--bs-tertiary-bg, #f8f9fa);
-    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+    background: var(--issues-surface-alt);
+    border-bottom: 1px solid var(--issues-border);
     font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--bs-secondary-color, #6c757d);
+    color: var(--issues-text-muted);
     display: flex;
     align-items: center;
     gap: 0.4rem;
@@ -40,7 +41,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--bs-secondary-color, #6c757d);
+    color: var(--issues-text-muted);
     margin-bottom: 0.1rem;
   }
 
@@ -70,7 +71,7 @@
   // Reset default button styles
   border-radius: 0;
   border: none;
-  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+  border-bottom: 1px solid var(--issues-border);
   padding: 0.65rem 1rem;
   background: transparent;
   cursor: pointer;
@@ -81,7 +82,7 @@
   }
 
   &:hover {
-    background: var(--bs-tertiary-bg, #f8f9fa);
+    background: var(--issues-surface-alt);
   }
 
   // Set by hx-disabled-elt while the request is in flight
@@ -91,7 +92,7 @@
   }
 
   // Semantic colour modifiers
-  &.act-warning { color: #f59e0b; }
-  &.act-success { color: #22c55e; }
-  &.act-danger  { color: #ef4444; }
+  &.act-warning { color: var(--issues-act-warning); }
+  &.act-success { color: var(--issues-act-success); }
+  &.act-danger  { color: var(--issues-act-danger); }
 }

@@ -24,11 +24,15 @@
 
 
 // ── Header card ────────────────────────────────────────
+//
+//  Follows the site theme: a plain card surface in the light
+//  theme, a dark slate gradient under data-theme="dark".
 
 .ticket-header-card {
-  background: linear-gradient(135deg, var(--ap-header-from) 0%, var(--ap-header-to) 100%);
-  color: #f1f5f9;
-  border-radius: var(--ap-radius-lg);
+  background: var(--issues-header-bg);
+  color: var(--issues-header-color);
+  border: 1px solid var(--issues-header-border);
+  border-radius: var(--issues-radius-lg);
   padding: 1.5rem 1.75rem;
   margin-bottom: 1.25rem;
   position: relative;
@@ -43,7 +47,7 @@
     width: 200px;
     height: 200px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--issues-header-deco);
     pointer-events: none;
   }
 
@@ -52,12 +56,12 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    opacity: 0.45;
+    color: var(--issues-header-muted);
     margin-bottom: 0.35rem;
   }
 
   .ticket-subject {
-    color: #f8fafc;
+    color: inherit;
   }
 
   .ticket-badge-row {
@@ -72,14 +76,15 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.82rem;
-    opacity: 0.7;
+    color: var(--issues-header-muted);
 
     a {
-      color: white;
+      color: var(--issues-header-color);
+      font-weight: 600;
     }
 
     .sep {
-      opacity: 0.4;
+      opacity: 0.6;
     }
   }
 }
@@ -110,23 +115,23 @@
   }
 
   &.status-opened {
-    background: var(--ap-opened-bg);
-    color: var(--ap-opened-color);
-    border: 1px solid var(--ap-opened-border);
+    background: var(--issues-opened-bg);
+    color: var(--issues-opened-color);
+    border: 1px solid var(--issues-opened-border);
   }
 
   &.status-closed {
-    background: var(--ap-closed-bg);
-    color: var(--ap-closed-color);
-    border: 1px solid var(--ap-closed-border);
+    background: var(--issues-closed-bg);
+    color: var(--issues-closed-color);
+    border: 1px solid var(--issues-closed-border);
   }
 }
 
 .t-category-chip {
   @extend %pill-base;
-  background: var(--ap-cat-bg);
-  color:      var(--ap-cat-color);
-  border:     1px solid var(--ap-cat-border);
+  background: var(--issues-cat-bg);
+  color:      var(--issues-cat-color);
+  border:     1px solid var(--issues-cat-border);
 
   i { opacity: 0.75; }
 }
@@ -135,9 +140,10 @@
 // ── Ticket body card ───────────────────────────────────
 
 .ticket-body-card {
-  background: var(--bs-body-bg, #fff);
-  border: 1px solid var(--bs-border-color, #dee2e6);
-  border-radius: var(--ap-radius);
+  background: var(--issues-surface);
+  color: var(--issues-text);
+  border: 1px solid var(--issues-border);
+  border-radius: var(--issues-radius);
   padding: 1.2rem 1.4rem;
   margin-bottom: 1.5rem;
   font-size: 0.91rem;
@@ -154,7 +160,7 @@
   margin-bottom: 1rem;
   font-size: 0.87rem;
   font-weight: 700;
-  color: var(--bs-body-color);
+  color: var(--issues-text);
 
   .thread-count {
     font-size: 0.7rem;
@@ -163,7 +169,7 @@
   .thread-header-line {
     flex: 1;
     height: 1px;
-    background: var(--bs-border-color, #dee2e6);
+    background: var(--issues-border);
   }
 }
 
@@ -173,7 +179,7 @@
 .thread-empty {
   text-align: center;
   padding: 2.5rem 1rem;
-  color: var(--bs-secondary-color, #6c757d);
+  color: var(--issues-text-muted);
 
   i {
     font-size: 2rem;
@@ -191,14 +197,16 @@
 }
 
 .reply-card {
-  border: 1px solid var(--bs-border-color, #dee2e6);
-  border-radius: var(--ap-radius);
+  background: var(--issues-surface);
+  color: var(--issues-text);
+  border: 1px solid var(--issues-border);
+  border-radius: var(--issues-radius);
   overflow: hidden;
 
   .reply-card-head {
     padding: 0.65rem 1rem;
-    background: var(--bs-tertiary-bg, #f8f9fa);
-    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+    background: var(--issues-surface-alt);
+    border-bottom: 1px solid var(--issues-border);
     font-size: 0.84rem;
     font-weight: 700;
     display: flex;
@@ -233,11 +241,11 @@
 
 .ticket-closed-notice {
   padding: 1.25rem;
-  border-radius: var(--ap-radius);
-  background: var(--bs-tertiary-bg, #f8f9fa);
-  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: var(--issues-radius);
+  background: var(--issues-surface-alt);
+  border: 1px solid var(--issues-border);
   text-align: center;
-  color: var(--bs-secondary-color, #6c757d);
+  color: var(--issues-text-muted);
   font-size: 0.88rem;
 
   i {
