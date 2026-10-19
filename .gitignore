@@ -41,5 +41,6 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
-# Demo recordings (demo/record_demo.py)
+# Demo recordings (demo/scenario.py) and the background music, which is downloaded separately
 demo/output/
+demo/music.mp3

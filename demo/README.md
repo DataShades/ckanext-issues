@@ -35,6 +35,7 @@ backdated over the past weeks.
 - The demo users `maria`, `tom`, `aisha` and the sysadmin `anna-support` are
   created (or reset) with the password `correct horse battery staple`.
 
-The video lands in `demo/output/ckanext-issues.mp4` (ignored by git), with a
-still of the dark-theme queue in `demo/output/screenshots/`. See ckan-demo's
-docs for `--speed`, `--no-captions`, `--gif` and the rest.
+The video lands in `demo/output/ckanext-issues.mp4`.
+Background music goes in `demo/music.mp3`.
+
+See ckan-demo's docs for `--speed`, `--no-captions`, `--gif` and the rest.
