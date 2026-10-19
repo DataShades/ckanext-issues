@@ -131,7 +131,7 @@ def staff_triage(d: Director) -> None:
         "Thanks, Maria! The 2025 regional figures are being validated. "
         "We expect to publish them **next week** and will update this ticket.",
     )
-    reply.press("Control+Enter")
+    d.press("Control+Enter")
     expect(d.page.locator(".message-card")).to_have_count(1)
     d.caption("Staff replies are marked “Support”", hold="read")
     d.caption(None, hold=0.3)
@@ -146,7 +146,7 @@ def conversation(d: Director) -> None:
     d.caption("Maria sees the answer on her ticket", hold="read")
     reply = d.page.locator("#reply-textarea")
     d.type(reply, "Great, thank you! Could you also add the 2024 revisions?")
-    reply.press("Control+Enter")
+    d.press("Control+Enter")
     expect(d.page.locator(".message-card")).to_have_count(2)
     d.pause(1)
 
