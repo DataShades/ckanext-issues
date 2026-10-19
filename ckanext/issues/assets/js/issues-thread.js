@@ -6,6 +6,7 @@
  * single message.
  */
 ckan.module("issues-thread", function ($) {
+
     return {
         initialize: function () {
             $.proxyAll(this, /_on/);
@@ -18,6 +19,60 @@ ckan.module("issues-thread", function ($) {
             // on success; htmx fires it on the reply form once the new thread
             // is in place and it bubbles up to us.
             this.el.on("issues:message-added", this._onMessageAdded);
+            // Native listener: htmx's event carries detail.issueRequest, and
+            // CKAN core handles htmx:confirm on document, so we see it first.
+            this.el[0].addEventListener("htmx:confirm", this._onConfirm);
+
+        },
+
+        /**
+         * Show our own confirm dialog for buttons that describe it with
+         * data-issues-confirm-* attributes: a specific title and button
+         * label instead of core's "Please Confirm" / "Confirm", and a
+         * danger style for destructive actions.
+         *
+         * @param {CustomEvent} e htmx:confirm
+         */
+        _onConfirm: function (e) {
+            var trigger = e.target;
+            var title = trigger.getAttribute("data-issues-confirm-title");
+
+            if (!e.detail.question || !title || !ckan.confirm) {
+                return;
+            }
+
+            // Stop htmx sending the request, and core showing its own dialog.
+            e.preventDefault();
+            e.stopPropagation();
+
+            var danger = trigger.hasAttribute("data-issues-confirm-danger");
+            var escape = function (text) {
+                return $("<div>").text(text).html();
+            };
+
+            ckan.confirm({
+                title: escape(title),
+                message: escape(e.detail.question),
+                confirmText: escape(trigger.getAttribute("data-issues-confirm-label") || ckan.i18n._("Confirm")),
+                type: danger ? "danger" : "default",
+                centered: true,
+                keyboard: true,
+                onConfirm: function () {
+                    // true: skip htmx's own window.confirm()
+                    e.detail.issueRequest(true);
+                }
+            });
+
+            // Enter on a focused "Delete" is too easy; start on Cancel.
+            var modal = document.getElementById("ckan-confirm-modal");
+            if (danger && modal) {
+                modal.addEventListener("shown.bs.modal", function () {
+                    var cancel = document.getElementById("ckan-confirm-cancel");
+                    if (cancel) {
+                        cancel.focus();
+                    }
+                }, { once: true });
+            }
         },
 
         /**

@@ -16,7 +16,7 @@
     {% set attrs = {'class': 'form-control', 'required': 'true'} %}
 
     {{ form.input("subject", label=_("Subject"), value=data.subject, error=errors.subject, is_required=True, attrs=attrs) }}
-    {{ form.select('category', label=_('Category'), options=h.issues_get_category_options(), selected=data.category, error=errors.category, is_required=True, attrs=attrs) }}
+    {{ form.select('category', label=_('Category'), options=h.issues_get_category_options(), selected=data.category, error=errors.category, is_required=True, attrs={'class': 'form-select', 'required': 'true'}) }}
 
     {% call form.textarea("text", label=_("Description"), value=data.text, error=errors.text, rows=12, is_required=True, attrs=attrs) %}
         <span class="editor-info-block">

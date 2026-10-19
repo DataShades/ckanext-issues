@@ -11,7 +11,7 @@ from ckan.logic import parse_params
 from ckanext.tables.shared import GenericTableView
 
 from ckanext.issues.model import TicketMessage
-from ckanext.issues.table import SupportTable, UserTicketTable
+from ckanext.issues.table import SUPPORT_TABS, UserTicketTable
 
 if TYPE_CHECKING:
     from ckanext.issues.types import DictizedMessage, DictizedTicket
@@ -320,7 +320,9 @@ issues.add_url_rule(
     methods=("POST",),
 )
 # issues_admin — sysadmins only
-issues_admin.add_url_rule("/", view_func=GenericTableView.as_view("list", table=SupportTable))
+# One route per support queue tab; "/" (issues_admin.list) is the open queue.
+for _tab in SUPPORT_TABS:
+    issues_admin.add_url_rule(_tab.path, view_func=GenericTableView.as_view(_tab.endpoint, table=_tab.table))
 issues_admin.add_url_rule(
     "/ticket/<ticket_id>/update-status",
     view_func=TicketUpdateStatusView.as_view("ticket_update_status"),

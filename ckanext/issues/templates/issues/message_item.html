@@ -21,6 +21,10 @@
             <span class="msg-author">
                 {{ h.linked_user(message.author.name, maxlength=30) }}
             </span>
+            {% if not is_author %}
+                {# Only the author and sysadmins can post, so anyone else is support staff. #}
+                <span class="msg-role">{{ _('Support') }}</span>
+            {% endif %}
 
             <div class="msg-meta">
                 {% if message.updated_at %}
@@ -38,7 +42,7 @@
             <div class="msg-actions">
                 {% if can_manage %}
                     <button type="button"
-                            class="btn btn-sm btn-outline-secondary"
+                            class="msg-action"
                             id="message-edit-toggle-{{ message.id }}"
                             data-issues-toggle-edit="{{ message.id }}"
                             aria-controls="message-edit-form-{{ message.id }}"
@@ -49,11 +53,14 @@
                     </button>
 
                     <button type="button"
-                            class="btn btn-sm btn-danger"
+                            class="msg-action msg-action-danger"
                             hx-post="{{ h.url_for('issues.delete_message', message_id=message.id) }}"
                             hx-target="#messages-container-outer"
                             hx-swap="outerHTML swap:0.1s"
-                            hx-confirm="{{ _('Delete this message?') }}"
+                            hx-confirm="{{ _('The message will be permanently removed from the conversation.') }}"
+                            data-issues-confirm-title="{{ _('Delete message?') }}"
+                            data-issues-confirm-label="{{ _('Delete message') }}"
+                            data-issues-confirm-danger
                             hx-disabled-elt="this"
                             aria-label="{{ _('Delete message') }}"
                             title="{{ _('Delete') }}">

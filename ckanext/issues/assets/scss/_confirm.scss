@@ -1,0 +1,13 @@
+// ==========================================================
+//  CKAN core confirm dialog (ckan.confirm)
+//
+//  Its coloured presets ("danger", "primary", …) put
+//  .text-white on the header, but CKAN's theme colours
+//  .modal-title directly, which wins.
+//
+//  Drop once CKAN core ships the same fix.
+// ==========================================================
+
+#ckan-confirm-modal .modal-header.text-white .modal-title {
+  color: inherit;
+}

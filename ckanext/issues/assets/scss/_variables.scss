@@ -47,7 +47,16 @@
   --issues-header-color:  var(--bs-emphasis-color, #000);
   --issues-header-muted:  var(--bs-secondary-color, #5c636a);
   --issues-header-border: var(--issues-border);
-  --issues-header-deco:   rgba(0, 0, 0, 0.03);
+
+  // ── Support staff messages ──────────────────────────
+  --issues-staff-head-bg:     #f5f3ff;
+  --issues-staff-head-border: #e9e3fd;
+  --issues-staff-tag-bg:      #ede9fe;
+  --issues-staff-tag-color:   #5b21b6;
+
+  // ── Support queue tabs ──────────────────────────────
+  --issues-tab-active:      var(--bs-primary, #0d6efd);
+  --issues-tab-active-text: #fff;
 
   // ── Sidebar actions (on the page surface) ───────────
   --issues-act-warning: #b45309;
@@ -78,7 +87,14 @@
   --issues-header-color:  #f8fafc;
   --issues-header-muted:  #cbd5e1;
   --issues-header-border: rgba(255, 255, 255, 0.08);
-  --issues-header-deco:   rgba(255, 255, 255, 0.04);
+
+  --issues-staff-head-bg:     rgba(139, 92, 246, 0.10);
+  --issues-staff-head-border: rgba(139, 92, 246, 0.20);
+  --issues-staff-tag-bg:      rgba(139, 92, 246, 0.18);
+  --issues-staff-tag-color:   #c4b5fd;
+
+  --issues-tab-active:      #a5b4fc;
+  --issues-tab-active-text: #141b2d;
 
   --issues-act-warning: #fbbf24;
   --issues-act-success: #4ade80;

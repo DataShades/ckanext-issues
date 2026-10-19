@@ -8,22 +8,21 @@ from ckanext.tables.shared import FormatterResult, Options, Value, formatters
 
 from ckanext.issues.model import Ticket
 
-_STATUS_BADGE_CLASSES = {
-    Ticket.Status.opened: "bg-success",
-    Ticket.Status.closed: "bg-secondary",
-}
+_STATUSES = {Ticket.Status.opened, Ticket.Status.closed}
 
 
 class StatusFormatter(formatters.BaseFormatter):
-    """Render the ticket status as a coloured badge."""
+    """Render the ticket status as the same pill the ticket page uses."""
 
     def format(self, value: Value, options: Options) -> FormatterResult:  # noqa: ARG002
-        badge_class = _STATUS_BADGE_CLASSES.get(str(value))
-        if not badge_class:
+        if value not in _STATUSES:
             return ""
 
         label = tk.h.issues_status_label(value)
-        return tk.literal(f'<span class="badge {badge_class} text-white">{escape(label)}</span>')
+        return tk.literal(
+            f'<span class="t-status-badge status-{escape(value)}">'
+            f'<i class="fa fa-circle" aria-hidden="true"></i> {escape(label)}</span>'
+        )
 
 
 class TicketLinkFormatter(formatters.BaseFormatter):

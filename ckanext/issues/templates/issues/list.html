@@ -11,7 +11,22 @@
 {% block primary %}
     <div class="primary col-md-12" role="main">
         <div class="pt-2">
-            <h1>{{ _("Support tickets") }}</h1>
+            <h1 class="sr-only">{{ _("Support tickets") }}</h1>
+
+            {% block support_tabs %}
+                <nav class="issues-tabs overflow-y-hidden" aria-label="{{ _('Ticket views') }}">
+                    <ul>
+                        {% for tab in h.issues_support_tabs() %}
+                            <li>
+                                <a href="{{ tab.url }}" class="issues-tab{{ ' active' if tab.active }}"{% if tab.active %} aria-current="page"{% endif %}>
+                                    {{ tab.label }}
+                                    <span class="issues-tab-count">{{ tab.count }}</span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+            {% endblock %}
             {% block primary_content %}
                 {% snippet "tables/render_table.html", table=table %}
             {% endblock %}

@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import re
+
 import pytest
 from sqlalchemy import select
 
 import ckan.model as model
 import ckan.plugins.toolkit as tk
+from ckan.tests import factories
 from ckan.tests.helpers import call_action
 
 from ckanext.issues.model import Ticket
@@ -383,7 +386,8 @@ class TestTableContent:
 
         row = _table_rows(app, "issues_admin.list", sysadmin["id"])[ticket["id"]]
 
-        assert 'class="badge bg-success text-white">Open<' in row["status"]
+        assert 'class="t-status-badge status-opened"' in row["status"]
+        assert "Open</span>" in row["status"]
         assert tk.url_for("user.read", id=ticket["author"]["name"]) in row["author_name"]
         assert tk.url_for("user.read", id=sysadmin["name"]) in row["assignee_name"]
 
@@ -405,6 +409,48 @@ class TestTableContent:
 
         expected = tk.h.render_datetime(ticket["created_at"], date_format="%Y-%m-%d %H:%M")
         assert row["created_at"] == expected
+
+
+class TestSupportTabs:
+    @pytest.fixture
+    def queue(self, ticket_factory, sysadmin):
+        """One ticket per situation the tabs tell apart."""
+        other_admin = factories.Sysadmin()
+        tickets = {name: ticket_factory() for name in ("unassigned", "mine", "others", "closed")}
+        call_action("issues_ticket_assign", id=tickets["mine"]["id"], assignee_id=sysadmin["id"])
+        call_action("issues_ticket_assign", id=tickets["others"]["id"], assignee_id=other_admin["id"])
+        call_action("issues_ticket_update", id=tickets["closed"]["id"], status=Ticket.Status.closed)
+        return {name: ticket["id"] for name, ticket in tickets.items()}
+
+    @pytest.mark.parametrize(
+        ("endpoint", "expected"),
+        [
+            ("issues_admin.list", {"unassigned", "mine", "others"}),
+            ("issues_admin.list_unassigned", {"unassigned"}),
+            ("issues_admin.list_mine", {"mine"}),
+            ("issues_admin.list_closed", {"closed"}),
+            ("issues_admin.list_all", {"unassigned", "mine", "others", "closed"}),
+        ],
+    )
+    def test_each_tab_shows_its_tickets(self, app, queue, sysadmin, endpoint, expected):
+        rows = _table_rows(app, endpoint, sysadmin["id"])
+
+        assert set(rows) == {queue[name] for name in expected}
+
+    def test_tabs_show_counts_and_mark_the_current_one(self, app, queue, sysadmin):
+        body = app.get(tk.url_for("issues_admin.list_unassigned"), headers=_auth(sysadmin["id"])).body
+
+        for label, count in (("Open", 3), ("Unassigned", 1), ("Assigned to me", 1), ("Closed", 1), ("All", 4)):
+            assert re.search(rf"{label}\s*<span class=\"issues-tab-count\">{count}</span>", body), label
+
+        current = re.findall(r'<a href="([^"]+)" class="issues-tab active" aria-current="page">', body)
+        assert current == [tk.url_for("issues_admin.list_unassigned")]
+
+    @pytest.mark.parametrize("endpoint", ["list_unassigned", "list_mine", "list_closed", "list_all"])
+    def test_regular_user_is_forbidden(self, app, user, endpoint):
+        resp = app.get(tk.url_for(f"issues_admin.{endpoint}"), headers=_auth(user["id"]))
+
+        assert resp.status_code == 403
 
 
 class TestMissingTickets:

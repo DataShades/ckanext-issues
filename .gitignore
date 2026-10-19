@@ -40,3 +40,6 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# Demo recordings (demo/record_demo.py)
+demo/output/

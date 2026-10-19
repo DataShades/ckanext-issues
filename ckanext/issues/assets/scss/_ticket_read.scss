@@ -13,11 +13,33 @@
   gap: 1.5rem;
   align-items: start;
 
+  // One column: lift the main column's blocks into the grid so the
+  // sidebar (details + staff actions) sits right under the title instead
+  // of above it or below a long thread. The grid gap does the spacing.
   @media (max-width: 991px) {
     grid-template-columns: 1fr;
+    gap: 1rem;
+
+    .ticket-main {
+      display: contents;
+    }
+
+    .ticket-main > * {
+      order: 3;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    .ticket-main > .ticket-header-card {
+      order: 1;
+    }
 
     .ticket-sidebar {
-      order: -1;
+      order: 2;
+
+      .sidebar-card:last-child {
+        margin-bottom: 0;
+      }
     }
   }
 }
@@ -35,21 +57,6 @@
   border-radius: var(--issues-radius-lg);
   padding: 1.5rem 1.75rem;
   margin-bottom: 1.25rem;
-  position: relative;
-  overflow: hidden;
-
-  // Decorative circle in top-right corner
-  &::after {
-    content: '';
-    position: absolute;
-    top: -50px;
-    right: -50px;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background: var(--issues-header-deco);
-    pointer-events: none;
-  }
 
   .ticket-id-tag {
     font-size: 0.72rem;
@@ -73,8 +80,9 @@
 
   .ticket-meta-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.25rem 0.5rem;
     font-size: 0.82rem;
     color: var(--issues-header-muted);
 
@@ -213,27 +221,16 @@
     align-items: center;
     gap: 0.45rem;
     margin: 0;
+
+    // The card head is the textarea's label; CKAN suffixes every label
+    // with a colon.
+    &::after {
+      content: none;
+    }
   }
 
   .reply-card-body {
     padding: 1rem;
-
-    // The card head is the textarea's label; drop the macro's duplicate
-    // (display:none also keeps it out of the accessibility tree).
-    .form-label {
-        display: none;
-    }
-
-    .form-group {
-        margin-bottom: 0;
-    }
-  }
-
-  .controls.editor .editor-info-block {
-    width: 100%;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    margin: 0;
   }
 }
 
