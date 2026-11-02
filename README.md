@@ -15,7 +15,8 @@ It provides:
   tickets and exchange messages with staff.
 * A **sysadmin dashboard** (`/issues/admin`) listing every ticket, with bulk
   actions (close / reopen / remove), per-ticket assignment and a threaded
-  conversation view.
+  conversation view. Open tickets where the author has the last word are
+  highlighted as unread and collected in a **Needs reply** tab.
 * Email notifications (new ticket → sysadmins, new reply / status change →
   ticket author, assignment → assignee), each toggleable via config. Mails
   are sent from a background job, so a CKAN worker must be running

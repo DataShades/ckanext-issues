@@ -1,0 +1,26 @@
+// ==========================================================
+//  Ticket tables: tickets waiting for a staff reply read as
+//  unread. The dot comes from TicketLinkFormatter;
+//  ckanext-tables has no per-row class, so the row is found
+//  through it.
+// ==========================================================
+
+.issues-unread-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  background: var(--issues-unread-dot);
+  vertical-align: 0.05em;
+
+  + a {
+    font-weight: 700;
+  }
+}
+
+// !important to beat the tables' own row background; its hover and selected
+// rules are !important too and more specific, so those states still show.
+.tabulator-row:has(.issues-unread-dot) {
+  background-color: var(--issues-unread-bg) !important;
+}

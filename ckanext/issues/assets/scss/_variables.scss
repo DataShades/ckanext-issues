@@ -58,6 +58,10 @@
   --issues-tab-active:      var(--bs-primary, #0d6efd);
   --issues-tab-active-text: #fff;
 
+  // ── Tickets waiting for a reply ─────────────────────
+  --issues-unread-bg:  #eff6ff;
+  --issues-unread-dot: var(--bs-primary, #0d6efd);
+
   // ── Sidebar actions (on the page surface) ───────────
   --issues-act-warning: #b45309;
   --issues-act-success: #15803d;
@@ -95,6 +99,9 @@
 
   --issues-tab-active:      #a5b4fc;
   --issues-tab-active-text: #141b2d;
+
+  --issues-unread-bg:  rgba(99, 102, 241, 0.12);
+  --issues-unread-dot: #a5b4fc;
 
   --issues-act-warning: #fbbf24;
   --issues-act-success: #4ade80;

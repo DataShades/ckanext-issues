@@ -14,6 +14,7 @@
 //    5. indicator  — htmx pending spinners (also used by the modal)
 //    6. confirm    — update CKAN core's confirm dialog
 //    7. tabs       — support queue view tabs
+//    8. ticket_list — unread highlight in the ticket tables
 // ==========================================================
 
 @use 'variables';
@@ -23,3 +24,4 @@
 @use 'indicator';
 @use 'confirm';
 @use 'tabs';
+@use 'ticket_list';

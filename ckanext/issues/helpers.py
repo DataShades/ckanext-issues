@@ -26,6 +26,7 @@ def issues_support_tabs() -> list[dict[str, Any]]:
     """The support queue tabs, with ticket counts and the current one marked."""
     labels = {
         SupportScope.open: tk._("Open"),
+        SupportScope.needs_reply: tk._("Needs reply"),
         SupportScope.unassigned: tk._("Unassigned"),
         SupportScope.mine: tk._("Assigned to me"),
         SupportScope.closed: tk._("Closed"),

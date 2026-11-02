@@ -168,6 +168,7 @@ class TicketMessage(tk.BaseModel):
             sa.Integer,
             sa.ForeignKey("issues_ticket.id", ondelete="CASCADE"),
             nullable=False,
+            index=True,
         ),
         sa.Column("author_id", sa.Text, sa.ForeignKey("user.id", ondelete="CASCADE"), nullable=False),
         sa.Column("content", sa.Text, nullable=False),

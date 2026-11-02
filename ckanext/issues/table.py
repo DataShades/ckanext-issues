@@ -13,7 +13,27 @@ from ckan import types
 import ckanext.tables.shared as t
 
 from ckanext.issues import formatters as sf
-from ckanext.issues.model import Ticket
+from ckanext.issues.model import Ticket, TicketMessage
+
+
+def _needs_reply_condition() -> sql.ColumnElement[bool]:
+    """Open tickets where the author has the last word, so staff owe a reply.
+
+    A ticket without messages counts: its description is the author's question.
+    Only the author and sysadmins can post, so any other last poster is staff.
+    """
+    last_poster = (
+        select(TicketMessage.author_id)
+        .where(TicketMessage.ticket_id == Ticket.id)
+        .order_by(TicketMessage.created_at.desc(), TicketMessage.id.desc())
+        .limit(1)
+        .correlate(Ticket)
+        .scalar_subquery()
+    )
+    return and_(
+        Ticket.status == Ticket.Status.opened,
+        func.coalesce(last_poster, Ticket.author_id) == Ticket.author_id,
+    )
 
 
 def _build_support_tickets_stmt() -> sql.Select:
@@ -46,6 +66,7 @@ def _build_support_tickets_stmt() -> sql.Select:
             assignee_display,
             author_alias.name.label("author_login"),
             assignee_alias.name.label("assignee_login"),
+            _needs_reply_condition().label("needs_reply"),
         )
         .outerjoin(author_alias, Ticket.author_id == author_alias.id)
         .outerjoin(assignee_alias, Ticket.assignee_id == assignee_alias.id)
@@ -103,6 +124,7 @@ class SupportScope:
     """Which tickets a tab of the support queue shows."""
 
     open = "open"
+    needs_reply = "needs_reply"
     unassigned = "unassigned"
     mine = "mine"
     closed = "closed"
@@ -120,6 +142,7 @@ def _scope_condition(scope: str) -> sql.ColumnElement[bool] | None:
 
     conditions: dict[str, sql.ColumnElement[bool] | None] = {
         SupportScope.open: is_open,
+        SupportScope.needs_reply: _needs_reply_condition(),
         SupportScope.unassigned: and_(is_open, Ticket.assignee_id.is_(None)),
         SupportScope.mine: and_(is_open, Ticket.assignee_id == user_id),
         SupportScope.closed: Ticket.status == Ticket.Status.closed,
@@ -132,6 +155,7 @@ def support_scope_counts() -> dict[str, int]:
     """Number of tickets in every support queue tab, in one query."""
     scopes = [
         SupportScope.open,
+        SupportScope.needs_reply,
         SupportScope.unassigned,
         SupportScope.mine,
         SupportScope.closed,
@@ -285,6 +309,10 @@ class SupportTable(t.TableDefinition):
         return _apply_to_rows(rows, "issues_ticket_delete", {}, tk._("Ticket(s) deleted."))
 
 
+class NeedsReplySupportTable(SupportTable):
+    scope = SupportScope.needs_reply
+
+
 class UnassignedSupportTable(SupportTable):
     scope = SupportScope.unassigned
 
@@ -381,6 +409,7 @@ class SupportTab:
 
 SUPPORT_TABS = [
     SupportTab(SupportScope.open, "/", "list", SupportTable),
+    SupportTab(SupportScope.needs_reply, "/needs-reply", "list_needs_reply", NeedsReplySupportTable),
     SupportTab(SupportScope.unassigned, "/unassigned", "list_unassigned", UnassignedSupportTable),
     SupportTab(SupportScope.mine, "/mine", "list_mine", MySupportTable),
     SupportTab(SupportScope.closed, "/closed", "list_closed", ClosedSupportTable),

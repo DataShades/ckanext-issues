@@ -14,6 +14,11 @@ Snap = Callable[[Page, str], None]
 
 OPEN = [spec["subject"] for spec in seed.TICKETS if spec["status"] == "opened"]
 CLOSED = [spec["subject"] for spec in seed.TICKETS if spec["status"] == "closed"]
+NEEDS_REPLY = [
+    spec["subject"]
+    for spec in seed.TICKETS
+    if spec["status"] == "opened" and (not spec["messages"] or spec["messages"][-1][0] == "author")
+]
 
 
 def _tab(page: Page, label: str):
@@ -34,6 +39,7 @@ def test_support_queue_opens_on_open_tickets(login_as, staff, tickets, snap: Sna
     assigned_to_staff = [s for s in seed.TICKETS if s["status"] == "opened" and s["assignee"]]
     for label, count in (
         ("Open", len(OPEN)),
+        ("Needs reply", len(NEEDS_REPLY)),
         ("Unassigned", len(OPEN) - len(assigned_to_staff)),
         ("Assigned to me", len(assigned_to_staff)),
         ("Closed", len(CLOSED)),
@@ -42,6 +48,22 @@ def test_support_queue_opens_on_open_tickets(login_as, staff, tickets, snap: Sna
         expect(_tab(page, label).locator(".issues-tab-count")).to_have_text(str(count))
 
     snap(page, "queue")
+
+
+def test_tickets_waiting_for_a_reply_are_highlighted(login_as, staff, tickets, snap: Snap):
+    page = login_as(staff)
+    page.goto("/issues/admin/")
+
+    highlighted = page.locator(".tabulator-row", has=page.locator(".issues-unread-dot"))
+    expect(highlighted).to_have_count(len(NEEDS_REPLY))
+    for subject in NEEDS_REPLY:
+        expect(highlighted.get_by_role("link", name=subject)).to_be_visible()
+
+    _tab(page, "Needs reply").click()
+    expect(page).to_have_url(re.compile(r"/issues/admin/needs-reply$"))
+    expect(_tab(page, "Needs reply")).to_have_attribute("aria-current", "page")
+    expect(page.locator(".tabulator-row")).to_have_count(len(NEEDS_REPLY))
+    snap(page, "needs-reply")
 
 
 def test_switch_support_queue_tabs(login_as, staff, tickets, snap: Snap):

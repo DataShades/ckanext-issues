@@ -446,11 +446,90 @@ class TestSupportTabs:
         current = re.findall(r'<a href="([^"]+)" class="issues-tab active" aria-current="page">', body)
         assert current == [tk.url_for("issues_admin.list_unassigned")]
 
-    @pytest.mark.parametrize("endpoint", ["list_unassigned", "list_mine", "list_closed", "list_all"])
+    @pytest.mark.parametrize(
+        "endpoint", ["list_needs_reply", "list_unassigned", "list_mine", "list_closed", "list_all"]
+    )
     def test_regular_user_is_forbidden(self, app, user, endpoint):
         resp = app.get(tk.url_for(f"issues_admin.{endpoint}"), headers=_auth(user["id"]))
 
         assert resp.status_code == 403
+
+
+class TestNeedsReply:
+    UNREAD_DOT = 'class="issues-unread-dot"'
+
+    @staticmethod
+    def _post(ticket, author_id):
+        return call_action(
+            "issues_message_create",
+            ticket_id=ticket["id"],
+            author_id=author_id,
+            content="message",
+        )
+
+    @pytest.fixture
+    def queue(self, ticket_factory, sysadmin):
+        """One ticket per state of the conversation."""
+        tickets = {name: ticket_factory() for name in ("new", "followed_up", "answered", "closed")}
+
+        self._post(tickets["followed_up"], sysadmin["id"])
+        self._post(tickets["followed_up"], tickets["followed_up"]["author"]["id"])
+        self._post(tickets["answered"], tickets["answered"]["author"]["id"])
+        self._post(tickets["answered"], sysadmin["id"])
+        call_action("issues_ticket_update", id=tickets["closed"]["id"], status=Ticket.Status.closed)
+
+        return tickets
+
+    def test_tab_shows_tickets_where_the_author_has_the_last_word(self, app, queue, sysadmin):
+        rows = _table_rows(app, "issues_admin.list_needs_reply", sysadmin["id"])
+
+        assert set(rows) == {queue["new"]["id"], queue["followed_up"]["id"]}
+
+    def test_tab_shows_the_count(self, app, queue, sysadmin):
+        body = app.get(tk.url_for("issues_admin.list"), headers=_auth(sysadmin["id"])).body
+
+        assert re.search(r"Needs reply\s*<span class=\"issues-tab-count\">2</span>", body)
+
+    def test_staff_reply_clears_it(self, app, queue, sysadmin):
+        self._post(queue["new"], sysadmin["id"])
+
+        rows = _table_rows(app, "issues_admin.list_needs_reply", sysadmin["id"])
+
+        assert queue["new"]["id"] not in rows
+
+    def test_author_reply_brings_it_back(self, app, queue, sysadmin):
+        self._post(queue["answered"], queue["answered"]["author"]["id"])
+
+        rows = _table_rows(app, "issues_admin.list_needs_reply", sysadmin["id"])
+
+        assert queue["answered"]["id"] in rows
+
+    def test_deleting_the_staff_reply_brings_it_back(self, app, ticket, sysadmin):
+        message = self._post(ticket, sysadmin["id"])
+        assert ticket["id"] not in _table_rows(app, "issues_admin.list_needs_reply", sysadmin["id"])
+
+        call_action("issues_message_delete", id=message["id"])
+
+        assert ticket["id"] in _table_rows(app, "issues_admin.list_needs_reply", sysadmin["id"])
+
+    def test_reopened_ticket_needs_a_reply_again(self, app, queue, sysadmin):
+        call_action("issues_ticket_update", id=queue["closed"]["id"], status=Ticket.Status.opened)
+
+        rows = _table_rows(app, "issues_admin.list_needs_reply", sysadmin["id"])
+
+        assert queue["closed"]["id"] in rows
+
+    def test_only_waiting_tickets_are_highlighted(self, app, queue, sysadmin):
+        rows = _table_rows(app, "issues_admin.list_all", sysadmin["id"])
+
+        highlighted = {ticket_id for ticket_id, row in rows.items() if self.UNREAD_DOT in row["subject"]}
+
+        assert highlighted == {queue["new"]["id"], queue["followed_up"]["id"]}
+
+    def test_my_tickets_are_not_highlighted(self, app, ticket):
+        rows = _table_rows(app, "issues.my_tickets", ticket["author"]["id"])
+
+        assert self.UNREAD_DOT not in rows[ticket["id"]]["subject"]
 
 
 class TestMissingTickets:

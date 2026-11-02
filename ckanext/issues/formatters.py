@@ -26,11 +26,22 @@ class StatusFormatter(formatters.BaseFormatter):
 
 
 class TicketLinkFormatter(formatters.BaseFormatter):
-    """Render the ticket subject as a link to the ticket page."""
+    """Render the ticket subject as a link to the ticket page.
+
+    Rows with a truthy ``needs_reply`` get an unread dot; the stylesheet keys
+    the bold subject and the row highlight off it.
+    """
 
     def format(self, value: Value, options: Options) -> FormatterResult:  # noqa: ARG002
         url = tk.h.url_for("issues.ticket_read", ticket_id=self.initial_row["id"])
-        return tk.literal(f'<a href="{escape(url)}">{escape(value)}</a>')
+        link = f'<a href="{escape(url)}">{escape(value)}</a>'
+
+        if not self.initial_row.get("needs_reply"):
+            return tk.literal(link)
+
+        label = escape(tk._("Needs reply"))
+        dot = f'<span class="issues-unread-dot" role="img" title="{label}" aria-label="{label}"></span>'
+        return tk.literal(dot + link)
 
 
 class UserNameLinkFormatter(formatters.BaseFormatter):
