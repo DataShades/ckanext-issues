@@ -96,15 +96,18 @@ def test_ticket_thread(login_as, authors, tickets, snap: Snap):
     page = login_as(authors["maria"])
     page.goto(f"/issues/ticket/{ticket['id']}")
 
-    expect(page.locator(".message-card")).to_have_count(len(ticket["messages"]))
-    expect(page.locator(".thread-count")).to_have_text(str(len(ticket["messages"])))
+    expect(page.locator("#messages-container .message-card")).to_have_count(len(ticket["messages"]))
     # Regular users get no admin controls.
     expect(page.get_by_role("button", name="Close ticket")).to_have_count(0)
     expect(page.locator("#assignee_id")).to_have_count(0)
-    # Replies from support staff are tagged; the author's own are not.
+    # Every message is tagged with its side of the conversation; the opening
+    # message counts as the author's.
     staff_replies = sum(who == "staff" for who, _ in seed.TICKETS[0]["messages"])
-    expect(page.locator(".msg-role")).to_have_count(staff_replies)
-    expect(page.locator(".msg-role").first).to_have_text("Support")
+    author_messages = len(ticket["messages"]) - staff_replies + 1
+    expect(page.locator(".msg-role-support")).to_have_count(staff_replies)
+    expect(page.locator(".msg-role-support").first).to_have_text("Support")
+    expect(page.locator(".msg-role-author")).to_have_count(author_messages)
+    expect(page.locator(".msg-role-author").first).to_have_text("Author")
 
     reply_label = page.locator("label[for='reply-textarea']")
     expect(reply_label).to_have_text("Reply")
@@ -127,10 +130,9 @@ def test_reply_edit_and_delete_own_message(login_as, authors, tickets, snap: Sna
     reply.fill("Any update on this? Even a quarterly CSV would help.")
     page.get_by_role("button", name="Send Reply").click()
 
-    message = page.locator(".message-card")
+    message = page.locator("#messages-container .message-card")
     expect(message).to_have_count(1)
     expect(message).to_contain_text("Even a quarterly CSV would help.")
-    expect(page.locator(".thread-count")).to_have_text("1")
     expect(reply).to_have_value("")
     snap(page, "replied")
 
@@ -151,8 +153,7 @@ def test_reply_edit_and_delete_own_message(login_as, authors, tickets, snap: Sna
     snap(page, "confirm-delete")
     accept_confirm(page, "The message will be permanently removed from the conversation.")
 
-    expect(page.locator(".message-card")).to_have_count(0)
-    expect(page.locator(".thread-count")).to_have_text("0")
+    expect(page.locator("#messages-container .message-card")).to_have_count(0)
 
 
 def test_ctrl_enter_sends_reply(login_as, authors, tickets):
@@ -163,7 +164,7 @@ def test_ctrl_enter_sends_reply(login_as, authors, tickets):
     page.locator("#reply-textarea").fill("Sent from the keyboard")
     page.locator("#reply-textarea").press("Control+Enter")
 
-    expect(page.locator(".message-card")).to_contain_text("Sent from the keyboard")
+    expect(page.locator("#messages-container .message-card")).to_contain_text("Sent from the keyboard")
 
 
 def test_closed_ticket_has_no_reply_form(login_as, authors, tickets, snap: Snap):
@@ -203,7 +204,7 @@ def test_ticket_page_on_mobile(login_as, authors, tickets, snap: Snap):
     # Reading order on one column: title, then details, then the description.
     title = page.locator(".ticket-header-card").bounding_box()
     details = page.locator(".ticket-sidebar").bounding_box()
-    body = page.locator(".ticket-body-card").bounding_box()
+    body = page.locator(".ticket-opening-message").bounding_box()
     assert title
     assert details
     assert body

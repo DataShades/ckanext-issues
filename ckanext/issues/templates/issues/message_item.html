@@ -21,17 +21,14 @@
             <span class="msg-author">
                 {{ h.linked_user(message.author.name, maxlength=30) }}
             </span>
-            {% if not is_author %}
+            {% if is_author %}
+                <span class="msg-role msg-role-author">{{ _('Author') }}</span>
+            {% else %}
                 {# Only the author and sysadmins can post, so anyone else is support staff. #}
-                <span class="msg-role">{{ _('Support') }}</span>
+                <span class="msg-role msg-role-support">{{ _('Support') }}</span>
             {% endif %}
 
             <div class="msg-meta">
-                {% if message.updated_at %}
-                    <span class="msg-edited">
-                        <i class="fa fa-pencil" aria-hidden="true"></i> {{ _('edited') }}
-                    </span>
-                {% endif %}
                 <span class="msg-time">
                     <time title="{{ h.render_datetime(message.created_at, with_hours=True) }}">
                         {{ h.time_ago_from_timestamp(message.created_at) }}
@@ -73,6 +70,13 @@
         <div class="msg-bubble-body">
             <div id="message-content-{{ message.id }}">
                 {{ h.render_markdown(message.content) }}
+
+                {# Inside the content block so it hides with it while editing. #}
+                {% if message.updated_at %}
+                    <div class="msg-edited" title="{{ h.render_datetime(message.updated_at, with_hours=True) }}">
+                        {{ _('edited') }}
+                    </div>
+                {% endif %}
             </div>
 
             {% if can_manage %}

@@ -12,7 +12,7 @@
   border: 1px solid var(--issues-border);
   border-radius: var(--issues-radius);
   overflow: hidden;
-  margin-bottom: 1rem;
+  margin-bottom: var(--issues-gap);
 
   .sidebar-card-head {
     padding: 0.6rem 1rem;

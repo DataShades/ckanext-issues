@@ -38,21 +38,26 @@
   --issues-closed-border: #cbd5e1;
 
   // ── Category chip ───────────────────────────────────
-  --issues-cat-bg:     #e0e7ff;
   --issues-cat-color:  #3730a3;
-  --issues-cat-border: #c7d2fe;
 
   // ── Ticket header card ──────────────────────────────
-  --issues-header-bg:     var(--issues-surface-alt);
+  --issues-header-bg:     #FFFFFF;
   --issues-header-color:  var(--bs-emphasis-color, #000);
   --issues-header-muted:  var(--bs-secondary-color, #5c636a);
   --issues-header-border: var(--issues-border);
+  --issues-header-link:   #153084;
+  --issues-header-meta:   #667085;
 
-  // ── Support staff messages ──────────────────────────
-  --issues-staff-head-bg:     #f5f3ff;
-  --issues-staff-head-border: #e9e3fd;
+  // ── Card headers (message bubbles, reply form) ──────
+  --issues-card-head-bg: #FFFFFF;
+
+  // ── Support staff tag ───────────────────────────────
   --issues-staff-tag-bg:      #ede9fe;
   --issues-staff-tag-color:   #5b21b6;
+
+  // ── Ticket author tag ───────────────────────────────
+  --issues-author-tag-bg:    #e0f2fe;
+  --issues-author-tag-color: #075985;
 
   // ── Support queue tabs ──────────────────────────────
   --issues-tab-active:      var(--bs-primary, #0d6efd);
@@ -83,19 +88,22 @@
   --issues-closed-color:  #cbd5e1;
   --issues-closed-border: rgba(148, 163, 184, 0.25);
 
-  --issues-cat-bg:     rgba(99, 102, 241, 0.18);
   --issues-cat-color:  #a5b4fc;
-  --issues-cat-border: rgba(99, 102, 241, 0.25);
 
   --issues-header-bg:     linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   --issues-header-color:  #f8fafc;
   --issues-header-muted:  #cbd5e1;
   --issues-header-border: rgba(255, 255, 255, 0.08);
+  --issues-header-link:   var(--issues-header-color);
+  --issues-header-meta:   var(--issues-header-muted);
 
-  --issues-staff-head-bg:     rgba(139, 92, 246, 0.10);
-  --issues-staff-head-border: rgba(139, 92, 246, 0.20);
+  --issues-card-head-bg: var(--issues-surface-alt);
+
   --issues-staff-tag-bg:      rgba(139, 92, 246, 0.18);
   --issues-staff-tag-color:   #c4b5fd;
+
+  --issues-author-tag-bg:    rgba(14, 165, 233, 0.18);
+  --issues-author-tag-color: #7dd3fc;
 
   --issues-tab-active:      #a5b4fc;
   --issues-tab-active-text: #141b2d;
@@ -116,6 +124,12 @@
   --issues-staff-to:    #6d28d9;
 
   // ── Spacing / shape ─────────────────────────────────
+  // Gap between the page's blocks (cards, messages, columns).
+  --issues-gap:       1.5rem;
   --issues-radius:    10px;
   --issues-radius-lg: 12px;
+
+  @media (max-width: 767.98px) {
+    --issues-gap: 1rem;
+  }
 }

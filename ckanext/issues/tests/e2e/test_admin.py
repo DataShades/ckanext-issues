@@ -272,15 +272,15 @@ def test_staff_reply_is_visible_to_author(login_as, staff, authors, tickets):
     staff_page.goto(f"/issues/ticket/{ticket['id']}")
     staff_page.locator("#reply-textarea").fill("We have added this to the roadmap for Q3.")
     staff_page.get_by_role("button", name="Send Reply").click()
-    expect(staff_page.locator(".message-card")).to_have_count(1)
+    expect(staff_page.locator("#messages-container .message-card")).to_have_count(1)
 
     author_page = login_as(authors["tom"])
     author_page.goto(f"/issues/ticket/{ticket['id']}")
 
-    message = author_page.locator(".message-card")
+    message = author_page.locator("#messages-container .message-card")
     expect(message).to_contain_text("We have added this to the roadmap for Q3.")
     expect(message.locator(".msg-bubble")).to_have_class("msg-bubble bbl-staff")
-    expect(message.locator(".msg-role")).to_have_text("Support")
+    expect(message.locator(".msg-role-support")).to_have_text("Support")
 
 
 def test_close_confirm_is_not_styled_as_destructive(login_as, staff, tickets):

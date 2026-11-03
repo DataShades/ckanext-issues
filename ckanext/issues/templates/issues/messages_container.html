@@ -4,17 +4,6 @@
                      only); that message is the only one animated / focused
 #}
 <div id="messages-container-outer">
-    <div class="thread-header">
-        <i class="fa fa-comments" aria-hidden="true"></i>
-        {{ _('Conversation') }}
-
-        <span class="thread-count badge bg-secondary rounded-pill">
-            {{ ticket.messages | length }}
-        </span>
-
-        <div class="thread-header-line"></div>
-    </div>
-
     <div id="messages-container">
         {% for message in ticket.messages %}
             {% snippet "issues/message_item.html", message=message, ticket=ticket, is_new=(new_message_id and message.id == new_message_id) %}

@@ -1,6 +1,6 @@
 // ==========================================================
 //  Ticket read page
-//  Covers: layout, header card, badge/chips, body card,
+//  Covers: layout, header card, badge/chips,
 //          thread section, reply form, closed notice.
 // ==========================================================
 
@@ -10,7 +10,7 @@
 .ticket-read-wrap {
   display: grid;
   grid-template-columns: 1fr 270px;
-  gap: 1.5rem;
+  gap: var(--issues-gap);
   align-items: start;
 
   // One column: lift the main column's blocks into the grid so the
@@ -18,7 +18,6 @@
   // of above it or below a long thread. The grid gap does the spacing.
   @media (max-width: 991px) {
     grid-template-columns: 1fr;
-    gap: 1rem;
 
     .ticket-main {
       display: contents;
@@ -32,6 +31,17 @@
 
     .ticket-main > .ticket-header-card {
       order: 1;
+    }
+
+    // The grid gap spaces the thread from the reply form.
+    #messages-container > .message-card:last-child {
+      margin-bottom: 0;
+    }
+
+    // A closed ticket with no replies leaves the thread empty; drop it so
+    // it doesn't add a second grid gap.
+    #messages-container-outer:not(:has(.message-card, .thread-empty)) {
+      display: none;
     }
 
     .ticket-sidebar {
@@ -56,7 +66,7 @@
   border: 1px solid var(--issues-header-border);
   border-radius: var(--issues-radius-lg);
   padding: 1.5rem 1.75rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--issues-gap);
 
   .ticket-id-tag {
     font-size: 0.72rem;
@@ -71,11 +81,17 @@
     color: inherit;
   }
 
+  .ticket-header-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+  }
+
   .ticket-badge-row {
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem;
-    margin-bottom: 1rem;
   }
 
   .ticket-meta-row {
@@ -84,10 +100,10 @@
     align-items: center;
     gap: 0.25rem 0.5rem;
     font-size: 0.82rem;
-    color: var(--issues-header-muted);
+    color: var(--issues-header-meta);
 
     a {
-      color: var(--issues-header-color);
+      color: var(--issues-header-link);
       font-weight: 600;
     }
 
@@ -137,48 +153,9 @@
 
 .t-category-chip {
   @extend %pill-base;
-  background: var(--issues-cat-bg);
   color:      var(--issues-cat-color);
-  border:     1px solid var(--issues-cat-border);
 
   i { opacity: 0.75; }
-}
-
-
-// ── Ticket body card ───────────────────────────────────
-
-.ticket-body-card {
-  background: var(--issues-surface);
-  color: var(--issues-text);
-  border: 1px solid var(--issues-border);
-  border-radius: var(--issues-radius);
-  padding: 1.2rem 1.4rem;
-  margin-bottom: 1.5rem;
-  font-size: 0.91rem;
-  line-height: 1.7;
-}
-
-
-// ── Thread header row ──────────────────────────────────
-
-.thread-header {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  margin-bottom: 1rem;
-  font-size: 0.87rem;
-  font-weight: 700;
-  color: var(--issues-text);
-
-  .thread-count {
-    font-size: 0.7rem;
-  }
-
-  .thread-header-line {
-    flex: 1;
-    height: 1px;
-    background: var(--issues-border);
-  }
 }
 
 
@@ -200,8 +177,9 @@
 
 // ── Reply section ──────────────────────────────────────
 
+// Every block above it carries its own bottom margin.
 .reply-section {
-  margin-top: 1.5rem;
+  margin-top: 0;
 }
 
 .reply-card {
@@ -213,7 +191,7 @@
 
   .reply-card-head {
     padding: 0.65rem 1rem;
-    background: var(--issues-surface-alt);
+    background: var(--issues-card-head-bg);
     border-bottom: 1px solid var(--issues-border);
     font-size: 0.84rem;
     font-weight: 700;
