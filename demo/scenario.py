@@ -101,6 +101,8 @@ def open_ticket(d: Director) -> None:
 
     d.caption("Attach screenshots, CSVs or PDFs", hold="read")
     attach(d, "ticket-attachments", "population-chart.png")
+    d.caption(None, hold=0.3)
+    d.screenshot("new-ticket")
 
     d.caption("Submit, and the ticket is created", hold="read")
     d.click(modal.get_by_role("button", name="Submit"))
@@ -192,6 +194,7 @@ def conversation(d: Director) -> None:
     expect(own.locator(".msg-edited")).to_be_visible()
     d.pause(2.5)
     d.caption(None, hold=0.3)
+    d.screenshot("conversation")
 
 
 @scenario.scene("04-staff-close", user="staff")
@@ -236,6 +239,8 @@ def staff_manage(d: Director) -> None:
     d.pause(2.5)
     with d.navigates():
         d.click(tabs.get_by_role("link", name="Open"))
+    d.caption(None, hold=0.3)
+    d.screenshot("queue")
 
     d.caption("Select several tickets to act on them at once", hold="read")
     for row in d.page.locator(".tabulator-row").all()[:2]:
@@ -260,5 +265,4 @@ def staff_manage(d: Director) -> None:
     d.click(d.page.get_by_role("button", name="Switch to dark theme"))
     d.pause(3)
     d.caption(None, hold=0.3)
-    d.screenshot("dark-queue")
     d.card("", "ckanext-issues", "github.com/DataShades/ckanext-issues", hold=4)

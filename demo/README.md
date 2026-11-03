@@ -40,6 +40,14 @@ The attachment scenes need ckanext-files enabled with a private storage
 `demo/assets/`.
 
 The video lands in `demo/output/ckanext-issues.mp4`.
+The scenario also saves the README screenshots (`new-ticket`, `conversation`,
+`queue`) to `demo/output/screenshots/`. `demo/output/` is not
+committed, so copy them over to publish them:
+
+```sh
+cp demo/output/screenshots/*.png doc/images/
+```
+
 Background music goes in `demo/music.mp3`.
 
 See ckan-demo's docs for `--speed`, `--no-captions`, `--gif` and the rest.

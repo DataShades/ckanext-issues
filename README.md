@@ -5,7 +5,7 @@
 A CKAN extension for managing and tracking support tickets ("issues") from
 within the CKAN interface.
 
-![Screenshot of the support ticket modal](https://raw.githubusercontent.com/DataShades/ckanext-issues/master/doc/images/preview.png)
+![The staff ticket queue](https://raw.githubusercontent.com/DataShades/ckanext-issues/master/doc/images/queue.png)
 
 It provides:
 
@@ -22,6 +22,13 @@ It provides:
   are sent from a background job, so a CKAN worker must be running
   (`ckan jobs worker`). Set `ckanext.issues.mail_queue` to send them from a
   dedicated queue (`ckan jobs worker <queue>`).
+
+## Screenshots
+
+| | |
+| --- | --- |
+| ![Opening a ticket with an attached screenshot](https://raw.githubusercontent.com/DataShades/ckanext-issues/master/doc/images/new-ticket.png) | ![A ticket conversation between the user and support staff](https://raw.githubusercontent.com/DataShades/ckanext-issues/master/doc/images/conversation.png) |
+| Opening a ticket, with an attachment | The ticket conversation |
 
 ## Requirements
 
