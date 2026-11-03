@@ -7,12 +7,15 @@ See README.md in this folder.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from ckan_demo import Director, Scenario, Setup, User
 from playwright.sync_api import expect
 
 from ckanext.issues.tests.e2e.sample_data import AUTHORS, STAFF
 
 STAFF_NAME, STAFF_FULLNAME = next(iter(STAFF.items()))
+ASSETS = Path(__file__).parent / "assets"
 
 DEMO_SUBJECT = "Population dataset is missing 2025 figures for three regions"
 DEMO_TEXT = (
@@ -59,16 +62,25 @@ def prepare(setup: Setup) -> None:
 # ── Scenes ───────────────────────────────────────────────────────────────────
 
 
-def ticket_url(d: Director, *, staff: bool = False) -> str:
-    """URL of the demo ticket, looked up off camera (before ``d.goto``)."""
-    listing = "/issues/admin/all" if staff else "/issues/my-tickets"
-    d.page.goto(d.options.base_url + listing, wait_until="networkidle")
+def ticket_url(d: Director) -> str:
+    """URL of the author's demo ticket, looked up off camera (before ``d.goto``)."""
+    d.page.goto(d.options.base_url + "/issues/my-tickets", wait_until="networkidle")
     return d.page.get_by_role("link", name=DEMO_SUBJECT).first.get_attribute("href") or ""
+
+
+def attach(d: Director, input_id: str, filename: str) -> None:
+    """Click "Upload file" and pick ``filename`` from ``assets/``. The native
+    file dialog never opens: Playwright answers it off camera."""
+    with d.page.expect_file_chooser() as chooser:
+        d.click(d.page.locator(f"label[for='{input_id}']"))
+    chooser.value.set_files(ASSETS / filename)
+    expect(d.page.locator(f"[data-issues-attach-list='{input_id}'] .issues-attach-item")).to_have_count(1)
+    d.pause(1)
 
 
 @scenario.scene("01-open-ticket", user="author")
 def open_ticket(d: Director) -> None:
-    """A user opens a ticket from the header and finds it in My tickets."""
+    """A user opens a ticket from the header, with a screenshot, and finds it in My tickets."""
     d.goto("/dataset/")
     d.card(
         "ckanext-issues",
@@ -87,6 +99,9 @@ def open_ticket(d: Director) -> None:
     d.select(modal.get_by_label("Category"), value="Data request")
     d.type(modal.get_by_label("Description"), DEMO_TEXT)
 
+    d.caption("Attach screenshots, CSVs or PDFs", hold="read")
+    attach(d, "ticket-attachments", "population-chart.png")
+
     d.caption("Submit, and the ticket is created", hold="read")
     d.click(modal.get_by_role("button", name="Submit"))
     expect(modal.get_by_role("heading", name="Your ticket has been successfully created")).to_be_visible()
@@ -95,6 +110,9 @@ def open_ticket(d: Director) -> None:
     with d.navigates():
         d.click(modal.get_by_role("link", name="View ticket"))
     d.caption("The ticket page shows its status, category and description", hold="read")
+    d.caption("Attached images get a preview", hold="read")
+    d.point(d.page.locator(".ticket-opening-message .msg-attachment"))
+    d.pause(1.5)
 
     d.caption("All your tickets are under “My tickets”", hold="read")
     with d.navigates():
@@ -105,35 +123,46 @@ def open_ticket(d: Director) -> None:
 
 @scenario.scene("02-staff-triage", user="staff")
 def staff_triage(d: Director) -> None:
-    """Staff find it in Unassigned, take it and reply."""
+    """Staff find it in Needs reply, take it and reply with a file."""
     d.goto("/issues/admin/")
     d.card("Support staff", "The support queue", hold=2.5)
 
     d.caption("Staff see every open ticket here, with a count for each view", hold="read")
     tabs = d.page.get_by_role("navigation", name="Ticket views")
-    d.caption("New tickets wait in “Unassigned”", hold="read")
+    d.caption("Tickets waiting for a staff reply are collected in “Needs reply”", hold="read")
     with d.navigates():
-        d.click(tabs.get_by_role("link", name="Unassigned"))
+        d.click(tabs.get_by_role("link", name="Needs reply"))
+    d.pause(1)
+
+    row = d.page.locator(".tabulator-row", has=d.page.get_by_role("link", name=DEMO_SUBJECT))
+    d.caption("…and marked with a dot in every view", hold="read")
+    d.point(row.locator(".issues-unread-dot"))
     d.pause(1.5)
 
     with d.navigates():
-        d.click(d.page.get_by_role("link", name=DEMO_SUBJECT))
+        d.click(row.get_by_role("link", name=DEMO_SUBJECT))
 
     d.caption("Assign the ticket to yourself", hold="read")
     with d.navigates():
         d.select(d.page.locator("#assignee_id"), label=STAFF_FULLNAME)
     d.pause(1.5)
 
-    d.caption("Reply on the ticket. Ctrl+Enter sends it", hold="read")
+    d.caption("Replies can carry files too", hold="read")
+    attach(d, "reply-attachments", "population-2025-draft.csv")
+
+    d.caption("Ctrl+Enter sends the reply", hold="read")
     reply = d.page.locator("#reply-textarea")
     d.type(
         reply,
-        "Thanks, Maria! The 2025 regional figures are being validated. "
-        "We expect to publish them **next week** and will update this ticket.",
+        "Thanks, Maria! The preliminary figures are attached. "
+        "We expect to publish the final ones **next week** and will update this ticket.",
     )
     d.press("Control+Enter")
-    expect(d.page.locator(".message-card")).to_have_count(1)
-    d.caption("Staff replies are marked “Support”", hold="read")
+    messages = d.page.locator("#messages-container .message-card")
+    expect(messages).to_have_count(1)
+    d.caption("Every message is tagged “Author” or “Support”", hold="read")
+    d.point(messages.last.locator(".msg-role-support"))
+    d.pause(1.5)
     d.caption(None, hold=0.3)
 
 
@@ -147,11 +176,12 @@ def conversation(d: Director) -> None:
     reply = d.page.locator("#reply-textarea")
     d.type(reply, "Great, thank you! Could you also add the 2024 revisions?")
     d.press("Control+Enter")
-    expect(d.page.locator(".message-card")).to_have_count(2)
+    messages = d.page.locator("#messages-container .message-card")
+    expect(messages).to_have_count(2)
     d.pause(1)
 
     d.caption("Authors can edit or delete their own messages", hold="read")
-    own = d.page.locator(".message-card").last
+    own = messages.last
     d.click(own.get_by_role("button", name="Edit message"))
     d.type(
         own.get_by_role("textbox", name="Edit message"),
@@ -166,8 +196,12 @@ def conversation(d: Director) -> None:
 
 @scenario.scene("04-staff-close", user="staff")
 def staff_close(d: Director) -> None:
-    """Staff close the ticket after a confirmation."""
-    d.goto(ticket_url(d, staff=True))
+    """The follow-up brings the ticket back to Needs reply; staff close it."""
+    d.goto("/issues/admin/needs-reply")
+    d.caption("Maria's follow-up puts the ticket back in “Needs reply”", hold="read")
+    with d.navigates():
+        d.click(d.page.get_by_role("link", name=DEMO_SUBJECT))
+
     d.caption("Close the ticket when it's done. You'll be asked to confirm", hold="read")
     d.click(d.page.get_by_role("button", name="Close ticket"))
     dialog = d.page.locator("#ckan-confirm-modal")

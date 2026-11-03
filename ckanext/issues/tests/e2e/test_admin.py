@@ -59,6 +59,9 @@ def test_tickets_waiting_for_a_reply_are_highlighted(login_as, staff, tickets, s
     for subject in NEEDS_REPLY:
         expect(highlighted.get_by_role("link", name=subject)).to_be_visible()
 
+    for dot in highlighted.locator(".issues-unread-dot").all():
+        expect(dot).to_be_visible()
+
     _tab(page, "Needs reply").click()
     expect(page).to_have_url(re.compile(r"/issues/admin/needs-reply$"))
     expect(_tab(page, "Needs reply")).to_have_attribute("aria-current", "page")

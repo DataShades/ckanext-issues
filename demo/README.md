@@ -1,14 +1,14 @@
 # Demo video
 
-`scenario.py` is the ckanext-issues walkthrough (about 2 minutes), recorded
+`scenario.py` is the ckanext-issues walkthrough, recorded
 with [ckan-demo](../../ckan-demo/).
 
 | Scene | Who | What it shows |
 | --- | --- | --- |
-| `01-open-ticket` | user | header button → new-ticket modal (Markdown) → ticket page → My tickets |
-| `02-staff-triage` | staff | queue tabs → Unassigned → assign to me → reply (Ctrl+Enter), "Support" tag |
+| `01-open-ticket` | user | header button → new-ticket modal (Markdown, screenshot attached) → ticket page with image preview → My tickets |
+| `02-staff-triage` | staff | queue tabs → Needs reply and the unread dot → assign to me → reply with a CSV (Ctrl+Enter), "Author"/"Support" tags |
 | `03-conversation` | user | sees the reply, answers, edits their message |
-| `04-staff-close` | staff | close with confirmation, read-only closed ticket |
+| `04-staff-close` | staff | follow-up is back in Needs reply → close with confirmation, read-only closed ticket |
 | `05-author-closed` | user | closed notice |
 | `06-staff-manage` | staff | Closed view, bulk actions and the red delete confirmation, columns, dark theme |
 
@@ -34,6 +34,10 @@ backdated over the past weeks.
   backlog is loaded only into an empty queue.
 - The demo users `maria`, `tom`, `aisha` and the sysadmin `anna-support` are
   created (or reset) with the password `correct horse battery staple`.
+
+The attachment scenes need ckanext-files enabled with a private storage
+(see the extension's README, *Attachments*); the files they upload are in
+`demo/assets/`.
 
 The video lands in `demo/output/ckanext-issues.mp4`.
 Background music goes in `demo/music.mp3`.
