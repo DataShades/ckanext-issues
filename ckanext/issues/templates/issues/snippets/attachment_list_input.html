@@ -1,0 +1,9 @@
+{#
+    List of files picked in the attachment_input.html control with the same id.
+    Filled by the issues-attachments module.
+
+    id - id of the file input it belongs to
+#}
+{% if h.issues_attachments_enabled() %}
+    <ul class="issues-attach-list" data-issues-attach-list="{{ id }}" aria-label="{{ _('Selected files') }}" hidden></ul>
+{% endif %}

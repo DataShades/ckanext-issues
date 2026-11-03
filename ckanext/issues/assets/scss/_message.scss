@@ -202,6 +202,7 @@
     // Rendered markdown ends in a <p>; its margin would pad the bubble
     // (or push the "edited" marker away from the text).
     p:last-child,
+    p:has(+ .msg-attachments),
     p:has(+ .msg-edited) {
       margin-bottom: 0;
     }

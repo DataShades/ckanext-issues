@@ -6,6 +6,7 @@ import ckan.plugins.toolkit as tk
 from ckan import model, types
 
 import ckanext.issues.config as issues_config
+from ckanext.issues import attachments
 from ckanext.issues.model import Ticket, TicketMessage
 
 
@@ -45,3 +46,12 @@ def issues_assignee_validator(user_id_or_name: str, context: types.Context) -> A
         raise tk.Invalid(msg)
 
     return user.id
+
+
+def issues_attachments_validator(value: Any) -> list[Any]:
+    """Check uploaded files against the attachment limits.
+
+    Returns them as ckanext-files ``Upload`` objects; see
+    :func:`ckanext.issues.attachments.prepare_uploads`.
+    """
+    return attachments.prepare_uploads(value)

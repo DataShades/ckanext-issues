@@ -53,3 +53,46 @@ groups:
       Name of the background-job queue notification mails are sent from.
       Use a dedicated queue to keep mail separate from other jobs, and run a
       worker for it: `ckan jobs worker issues_mail`.
+
+- annotation: ckanext-issues attachments
+  description: |
+    File attachments on tickets and replies. They are only available when the
+    `files` plugin (ckanext-files) is enabled; without it these options have
+    no effect and the upload controls are hidden.
+  options:
+  - key: ckanext.issues.attachments.storage
+    example: issues
+    description: |
+      Name of the ckanext-files storage attachments are saved to. Leave empty
+      to use the default storage. The storage must be private: files are
+      served through a download route that checks access to the ticket, and a
+      public storage would bypass that. If the storage is missing or public,
+      uploads are turned off and the reason is logged.
+
+  - key: ckanext.issues.attachments.max_files
+    type: int
+    default: 5
+    description: |
+      Maximum number of files attached to one ticket or reply. Set to 0 to
+      turn uploads off while keeping existing attachments visible.
+
+  - key: ckanext.issues.attachments.max_size
+    type: int
+    default: 10485760
+    example: 5242880
+    description: |
+      Largest accepted file, in bytes (default 10 MiB). Set to 0 to disable
+      the check.
+
+  - key: ckanext.issues.attachments.allowed_types
+    type: list
+    default: image/png image/jpeg image/gif image/webp application/pdf text/plain text/csv application/json application/zip
+    example: image/* application/pdf
+    description: |
+      Space-separated MIME types that may be attached. `type/*` matches a
+      whole family, e.g. `image/*`. The type is detected from the file
+      content, not taken from the browser. Leave empty to accept any type.
+      Note that `image/*` includes SVG; keep SVG out of
+      `ckan.files.inline_content_types` (CKAN 2.12+) or
+      `ckanext.files.inline_content_types`, or an uploaded SVG can run
+      scripts on your site when opened.

@@ -15,6 +15,7 @@
 //    6. confirm    — update CKAN core's confirm dialog
 //    7. tabs       — support queue view tabs
 //    8. ticket_list — unread highlight in the ticket tables
+//    9. attachments — upload control and files on messages
 // ==========================================================
 
 @use 'variables';
@@ -25,3 +26,4 @@
 @use 'confirm';
 @use 'tabs';
 @use 'ticket_list';
+@use 'attachments';

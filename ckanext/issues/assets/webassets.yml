@@ -21,3 +21,12 @@ issues-css:
   output: ckanext-issues/%(version)s-issues.css
   contents:
     - css/style.css
+
+issues-attachments-js:
+  filter: rjsmin
+  output: ckanext-issues/%(version)s-issues-attachments.js
+  contents:
+    - js/issues-attachments.js
+  extra:
+    preload:
+      - base/main

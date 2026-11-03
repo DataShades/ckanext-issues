@@ -1,5 +1,7 @@
 from typing import TypedDict
 
+from typing_extensions import NotRequired
+
 
 class DictizedUser(TypedDict):
     id: str
@@ -14,6 +16,13 @@ class TicketData(TypedDict):
     category: str
 
 
+class DictizedAttachment(TypedDict):
+    id: str
+    name: str
+    size: int
+    content_type: str
+
+
 class DictizedMessage(TypedDict):
     id: int
     ticket_id: int
@@ -21,6 +30,7 @@ class DictizedMessage(TypedDict):
     author: DictizedUser
     created_at: str
     updated_at: str | None
+    attachments: NotRequired[list[DictizedAttachment]]
 
 
 class DictizedTicket(TypedDict):
@@ -34,3 +44,4 @@ class DictizedTicket(TypedDict):
     created_at: str
     updated_at: str
     messages: list[DictizedMessage]
+    attachments: NotRequired[list[DictizedAttachment]]

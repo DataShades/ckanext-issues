@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: ckanext-issues 0.1.5\n"
+"Project-Id-Version: ckanext-issues 0.5.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-23 17:02+0300\n"
+"POT-Creation-Date: 2026-11-03 15:29+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,16 +17,59 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: ckanext/issues/formatters.py:25
-#: ckanext/issues/templates/issues/ticket_read_inner.html:16
-#: ckanext/issues/templates/issues/ticket_read_inner.html:113
+#: ckanext/issues/attachments.py:113
+msgid "File attachments are not enabled"
+msgstr ""
+
+#: ckanext/issues/attachments.py:117
+#, python-brace-format
+msgid "You can attach up to {n} files"
+msgstr ""
+
+#: ckanext/issues/attachments.py:128
+msgid "Unsupported upload"
+msgstr ""
+
+#: ckanext/issues/attachments.py:131
+msgid "file"
+msgstr ""
+
+#: ckanext/issues/attachments.py:134
+#, python-brace-format
+msgid "{name} is larger than {limit}"
+msgstr ""
+
+#: ckanext/issues/attachments.py:137
+#, python-brace-format
+msgid "{name}: this file type is not allowed"
+msgstr ""
+
+#: ckanext/issues/formatters.py:42 ckanext/issues/helpers.py:30
+msgid "Needs reply"
+msgstr ""
+
+#: ckanext/issues/helpers.py:19 ckanext/issues/helpers.py:29
+#: ckanext/issues/templates/issues/ticket_read_inner.html:15
 msgid "Open"
 msgstr ""
 
-#: ckanext/issues/formatters.py:25
-#: ckanext/issues/templates/issues/ticket_read_inner.html:20
-#: ckanext/issues/templates/issues/ticket_read_inner.html:117
+#: ckanext/issues/helpers.py:19 ckanext/issues/helpers.py:33
+#: ckanext/issues/templates/issues/ticket_read_inner.html:19
 msgid "Closed"
+msgstr ""
+
+#: ckanext/issues/helpers.py:31
+#: ckanext/issues/templates/issues/ticket_read_inner.html:163
+#: ckanext/issues/templates/issues/ticket_read_inner.html:175
+msgid "Unassigned"
+msgstr ""
+
+#: ckanext/issues/helpers.py:32
+msgid "Assigned to me"
+msgstr ""
+
+#: ckanext/issues/helpers.py:34
+msgid "All"
 msgstr ""
 
 #: ckanext/issues/mailer.py:82
@@ -49,218 +92,321 @@ msgstr ""
 msgid "Ticket assigned to you: {subject}"
 msgstr ""
 
-#: ckanext/issues/table.py:61 ckanext/issues/table.py:205
-#: ckanext/issues/templates/issues/ticket_modal_form.html:11
+#: ckanext/issues/table.py:97
+#: ckanext/issues/templates/issues/ticket_modal_form.html:19
 msgid "Subject"
 msgstr ""
 
-#: ckanext/issues/table.py:64 ckanext/issues/table.py:208
+#: ckanext/issues/table.py:108
 #: ckanext/issues/templates/issues/emails/new_message.txt:12
 #: ckanext/issues/templates/issues/emails/new_ticket.txt:12
 #: ckanext/issues/templates/issues/emails/ticket_assigned.txt:12
 #: ckanext/issues/templates/issues/emails/ticket_updated.txt:12
-#: ckanext/issues/templates/issues/ticket_read_inner.html:109
 msgid "Status"
 msgstr ""
 
-#: ckanext/issues/table.py:70
+#: ckanext/issues/table.py:118
+msgid "Created"
+msgstr ""
+
+#: ckanext/issues/table.py:119
+msgid "Updated"
+msgstr ""
+
+#: ckanext/issues/table.py:198
 #: ckanext/issues/templates/issues/emails/new_ticket.txt:14
 #: ckanext/issues/templates/issues/emails/ticket_assigned.txt:13
-#: ckanext/issues/templates/issues/ticket_read_inner.html:125
+#: ckanext/issues/templates/issues/message_item.html:25
+#: ckanext/issues/templates/issues/ticket_read_inner.html:59
 msgid "Author"
 msgstr ""
 
-#: ckanext/issues/table.py:76
+#: ckanext/issues/table.py:204
 #: ckanext/issues/templates/issues/emails/ticket_updated.txt:13
-#: ckanext/issues/templates/issues/ticket_read_inner.html:128
-#: ckanext/issues/templates/issues/ticket_read_inner.html:134
+#: ckanext/issues/templates/issues/ticket_read_inner.html:153
+#: ckanext/issues/templates/issues/ticket_read_inner.html:161
 msgid "Assignee"
 msgstr ""
 
-#: ckanext/issues/table.py:80 ckanext/issues/table.py:212
+#: ckanext/issues/table.py:208 ckanext/issues/table.py:388
 #: ckanext/issues/templates/issues/emails/new_message.txt:11
 #: ckanext/issues/templates/issues/emails/new_ticket.txt:11
 #: ckanext/issues/templates/issues/emails/ticket_assigned.txt:11
 #: ckanext/issues/templates/issues/emails/ticket_updated.txt:11
-#: ckanext/issues/templates/issues/ticket_modal_form.html:12
-#: ckanext/issues/templates/issues/ticket_read_inner.html:122
+#: ckanext/issues/templates/issues/ticket_modal_form.html:20
 msgid "Category"
 msgstr ""
 
-#: ckanext/issues/table.py:81 ckanext/issues/table.py:213
-msgid "Created At"
-msgstr ""
-
-#: ckanext/issues/table.py:82 ckanext/issues/table.py:214
-msgid "Updated At"
-msgstr ""
-
-#: ckanext/issues/table.py:87 ckanext/issues/table.py:219
+#: ckanext/issues/table.py:216
 msgid "View"
 msgstr ""
 
-#: ckanext/issues/table.py:96 ckanext/issues/templates/issues/message_item.html:51
+#: ckanext/issues/table.py:225 ckanext/issues/templates/issues/message_item.html:63
 msgid "Delete"
 msgstr ""
 
-#: ckanext/issues/table.py:105
+#: ckanext/issues/table.py:230
+#: ckanext/issues/templates/issues/ticket_read_inner.html:218
+msgid "Delete ticket?"
+msgstr ""
+
+#: ckanext/issues/table.py:232
+#: ckanext/issues/templates/issues/ticket_read_inner.html:217
+msgid ""
+"The ticket and its whole conversation will be permanently deleted. This "
+"cannot be undone."
+msgstr ""
+
+#: ckanext/issues/table.py:234
+#: ckanext/issues/templates/issues/ticket_read_inner.html:219
+#: ckanext/issues/templates/issues/ticket_read_inner.html:222
+msgid "Delete ticket"
+msgstr ""
+
+#: ckanext/issues/table.py:242
 msgid "Close selected tickets"
 msgstr ""
 
-#: ckanext/issues/table.py:111
+#: ckanext/issues/table.py:246
+msgid "Close tickets?"
+msgstr ""
+
+#: ckanext/issues/table.py:248
+msgid ""
+"Authors of the selected tickets will no longer be able to reply. You can "
+"reopen them later."
+msgstr ""
+
+#: ckanext/issues/table.py:251
+msgid "Close tickets"
+msgstr ""
+
+#: ckanext/issues/table.py:256
 msgid "Reopen selected tickets"
 msgstr ""
 
-#: ckanext/issues/table.py:117
-msgid "Remove selected tickets"
+#: ckanext/issues/table.py:260
+msgid "Reopen tickets?"
 msgstr ""
 
-#: ckanext/issues/table.py:128
+#: ckanext/issues/table.py:261
+msgid "The selected tickets will be open for replies again."
+msgstr ""
+
+#: ckanext/issues/table.py:262
+msgid "Reopen tickets"
+msgstr ""
+
+#: ckanext/issues/table.py:267
+msgid "Delete selected tickets"
+msgstr ""
+
+#: ckanext/issues/table.py:272
+msgid "Delete tickets?"
+msgstr ""
+
+#: ckanext/issues/table.py:274
+msgid ""
+"The selected tickets and their conversations will be permanently deleted. "
+"This cannot be undone."
+msgstr ""
+
+#: ckanext/issues/table.py:277
+msgid "Delete tickets"
+msgstr ""
+
+#: ckanext/issues/table.py:288
 msgid "Error deleting ticket."
 msgstr ""
 
-#: ckanext/issues/table.py:137
+#: ckanext/issues/table.py:297
 msgid "Ticket(s) closed."
 msgstr ""
 
-#: ckanext/issues/table.py:145
+#: ckanext/issues/table.py:305
 msgid "Ticket(s) reopened."
 msgstr ""
 
-#: ckanext/issues/table.py:149
-msgid "Ticket(s) removed."
+#: ckanext/issues/table.py:309
+msgid "Ticket(s) deleted."
 msgstr ""
 
-#: ckanext/issues/table.py:173
+#: ckanext/issues/table.py:353
 #, python-brace-format
 msgid "Some tickets could not be processed: {ids}"
 msgstr ""
 
-#: ckanext/issues/table.py:233
+#: ckanext/issues/table.py:384
+msgid "You haven't created any support tickets yet."
+msgstr ""
+
+#: ckanext/issues/table.py:398
 msgid "You are not authorized to view this table"
 msgstr ""
 
-#: ckanext/issues/views.py:36
+#: ckanext/issues/views.py:39
 msgid "Need to be system administrator to administer"
 msgstr ""
 
-#: ckanext/issues/views.py:41
+#: ckanext/issues/views.py:44
 msgid "You must be logged in to access this page"
 msgstr ""
 
-#: ckanext/issues/views.py:50
+#: ckanext/issues/views.py:58
 msgid "You are not allowed to do this"
 msgstr ""
 
-#: ckanext/issues/views.py:89
-msgid "An error occurred while creating the ticket"
-msgstr ""
-
-#: ckanext/issues/views.py:94
+#: ckanext/issues/views.py:105
 msgid "Your ticket has been successfully created"
 msgstr ""
 
-#: ckanext/issues/views.py:95
-msgid "View your tickets at the user account page"
+#: ckanext/issues/views.py:106
+msgid "We will get back to you as soon as possible."
 msgstr ""
 
-#: ckanext/issues/views.py:182
+#: ckanext/issues/views.py:218
 msgid "Error updating message"
 msgstr ""
 
-#: ckanext/issues/logic/action.py:32 ckanext/issues/logic/validators.py:15
-#: ckanext/issues/views.py:208
+#: ckanext/issues/logic/action.py:32 ckanext/issues/logic/validators.py:16
+#: ckanext/issues/views.py:244
 msgid "Ticket not found"
 msgstr ""
 
-#: ckanext/issues/views.py:210
+#: ckanext/issues/views.py:246
 msgid "You are not allowed to view this ticket"
 msgstr ""
 
-#: ckanext/issues/views.py:274
+#: ckanext/issues/views.py:310
 msgid "The ticket has been deleted"
 msgstr ""
 
-#: ckanext/issues/logic/action.py:41 ckanext/issues/logic/validators.py:24
+#: ckanext/issues/assets/js/issues-attachments.js:71
+msgid "too large"
+msgstr ""
+
+#: ckanext/issues/assets/js/issues-attachments.js:78
+msgid "Remove"
+msgstr ""
+
+#: ckanext/issues/assets/js/issues-attachments.js:120
+#, python-brace-format
+msgid "Only the first {n} files were kept."
+msgstr ""
+
+#: ckanext/issues/assets/js/issues-thread.js:56
+msgid "Confirm"
+msgstr ""
+
+#: ckanext/issues/logic/action.py:41 ckanext/issues/logic/validators.py:25
 msgid "Message not found"
 msgstr ""
 
-#: ckanext/issues/logic/action.py:72
+#: ckanext/issues/logic/action.py:86
+msgid "The files could not be saved. Please try again."
+msgstr ""
+
+#: ckanext/issues/logic/action.py:118
 #, python-brace-format
 msgid ""
 "You already have {n} open support tickets. Please wait for one to be resolved"
 " before opening another."
 msgstr ""
 
-#: ckanext/issues/logic/action.py:182
+#: ckanext/issues/logic/action.py:239
 msgid "Cannot add messages to closed tickets"
 msgstr ""
 
-#: ckanext/issues/logic/validators.py:34
+#: ckanext/issues/logic/validators.py:35
 #, python-brace-format
 msgid "Category {category} is not allowed"
 msgstr ""
 
-#: ckanext/issues/logic/validators.py:44
+#: ckanext/issues/logic/validators.py:45
 msgid "Tickets can only be assigned to an active sysadmin"
 msgstr ""
 
 #: ckanext/issues/templates/header.html:7 ckanext/issues/templates/header.html:9
-#: ckanext/issues/templates/issues/list.html:4
-#: ckanext/issues/templates/issues/ticket_read.html:5
+#: ckanext/issues/templates/issues/list.html:3
+#: ckanext/issues/templates/issues/list.html:6
+#: ckanext/issues/templates/issues/list.html:14
+#: ckanext/issues/templates/issues/ticket_read.html:7
 msgid "Support tickets"
 msgstr ""
 
 #: ckanext/issues/templates/header.html:14 ckanext/issues/templates/header.html:16
-#: ckanext/issues/templates/issues/my_tickets.html:4
-msgid "My Support Requests"
+#: ckanext/issues/templates/issues/my_tickets.html:3
+#: ckanext/issues/templates/issues/my_tickets.html:6
+#: ckanext/issues/templates/issues/my_tickets.html:15
+#: ckanext/issues/templates/issues/ticket_modal_response.html:9
+#: ckanext/issues/templates/issues/ticket_read.html:9
+msgid "My tickets"
 msgstr ""
 
-#: ckanext/issues/templates/header.html:24
-msgid "Support"
-msgstr ""
-
-#: ckanext/issues/templates/issues/list.html:12
-msgid "Tickets"
+#: ckanext/issues/templates/issues/list.html:17
+msgid "Ticket views"
 msgstr ""
 
 #: ckanext/issues/templates/issues/message_item.html:28
-msgid "edited"
+msgid "Support"
 msgstr ""
 
-#: ckanext/issues/templates/issues/message_item.html:42
+#: ckanext/issues/templates/issues/message_item.html:47
+#: ckanext/issues/templates/issues/message_item.html:96
+msgid "Edit message"
+msgstr ""
+
+#: ckanext/issues/templates/issues/message_item.html:48
 msgid "Edit"
 msgstr ""
 
-#: ckanext/issues/templates/issues/message_item.html:50
-msgid "Delete this message?"
+#: ckanext/issues/templates/issues/message_item.html:57
+msgid "The message will be permanently removed from the conversation."
 msgstr ""
 
-#: ckanext/issues/templates/issues/message_item.html:78
+#: ckanext/issues/templates/issues/message_item.html:58
+msgid "Delete message?"
+msgstr ""
+
+#: ckanext/issues/templates/issues/message_item.html:59
+#: ckanext/issues/templates/issues/message_item.html:62
+msgid "Delete message"
+msgstr ""
+
+#: ckanext/issues/templates/issues/message_item.html:79
+msgid "edited"
+msgstr ""
+
+#: ckanext/issues/templates/issues/message_item.html:103
 msgid "Save"
 msgstr ""
 
-#: ckanext/issues/templates/issues/message_item.html:82
+#: ckanext/issues/templates/issues/message_item.html:107
 msgid "Cancel"
 msgstr ""
 
-#: ckanext/issues/templates/issues/messages_container.html:4
-msgid "Conversation"
+#: ckanext/issues/templates/issues/my_tickets.html:16
+msgid "New ticket"
 msgstr ""
 
-#: ckanext/issues/templates/issues/messages_container.html:20
-msgid "No replies yet. Be the first to respond."
+#: ckanext/issues/templates/issues/snippets/new_ticket_button.html:7
+#: ckanext/issues/templates/issues/ticket_modal.html:6
+msgid "New support ticket"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_modal.html:8
-msgid "Create support ticket"
+#: ckanext/issues/templates/issues/ticket_modal.html:7
+msgid "Close"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_modal_form.html:14
-msgid "Text"
+#: ckanext/issues/templates/issues/ticket_modal.html:15
+msgid "Loading…"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_modal_form.html:16
+#: ckanext/issues/templates/issues/ticket_modal_form.html:22
+msgid "Description"
+msgstr ""
+
+#: ckanext/issues/templates/issues/ticket_modal_form.html:24
 #, python-format
 msgid ""
 "You can use <a href=\"#markdown\" title=\"Markdown quick reference\" data-bs-"
@@ -268,113 +414,109 @@ msgid ""
 "html=\"true\">Markdown formatting</a> here"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_modal_form.html:22
+#: ckanext/issues/templates/issues/ticket_modal_form.html:37
+msgid "Please choose the files again."
+msgstr ""
+
+#: ckanext/issues/templates/issues/ticket_modal_form.html:45
 msgid "Submit"
 msgstr ""
 
 #: ckanext/issues/templates/issues/ticket_modal_response.html:8
-msgid "Got it"
+msgid "View ticket"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read.html:7
-msgid "My tickets"
+#: ckanext/issues/templates/issues/ticket_modal_response.html:15
+msgid "Got it"
 msgstr ""
 
 #: ckanext/issues/templates/issues/emails/new_message.txt:9
 #: ckanext/issues/templates/issues/emails/new_ticket.txt:9
 #: ckanext/issues/templates/issues/emails/ticket_assigned.txt:9
 #: ckanext/issues/templates/issues/emails/ticket_updated.txt:9
-#: ckanext/issues/templates/issues/ticket_read_inner.html:10
-msgid "Ticket"
+#: ckanext/issues/templates/issues/ticket_read.html:3
+#: ckanext/issues/templates/issues/ticket_read.html:12
+#: ckanext/issues/templates/issues/ticket_read_inner.html:8
+#, python-brace-format
+msgid "Ticket #{id}"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:42
+#: ckanext/issues/templates/issues/ticket_read_inner.html:32
+msgid "Opened by"
+msgstr ""
+
+#: ckanext/issues/templates/issues/ticket_read_inner.html:41
 msgid "Assigned to"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:59
+#: ckanext/issues/templates/issues/ticket_read_inner.html:86
 msgid "Reply"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:68
-msgid "Comment"
-msgstr ""
-
-#: ckanext/issues/templates/issues/ticket_read_inner.html:68
+#: ckanext/issues/templates/issues/ticket_read_inner.html:101
 msgid "Write your reply…"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:74
-msgid "characters"
+#: ckanext/issues/templates/issues/ticket_read_inner.html:114
+msgid "Markdown supported"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:77
+#: ckanext/issues/templates/issues/ticket_read_inner.html:114
+msgid "Ctrl+Enter to send"
+msgstr ""
+
+#: ckanext/issues/templates/issues/ticket_read_inner.html:120
 msgid "Send Reply"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:86
+#: ckanext/issues/templates/issues/ticket_read_inner.html:130
 msgid "This ticket is closed."
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:89
+#: ckanext/issues/templates/issues/ticket_read_inner.html:133
 msgid "Reopen the ticket to add new replies."
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:91
+#: ckanext/issues/templates/issues/ticket_read_inner.html:135
 msgid "Open a new ticket if you need further help."
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:106
+#: ckanext/issues/templates/issues/ticket_read_inner.html:150
 msgid "Details"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:137
-#: ckanext/issues/templates/issues/ticket_read_inner.html:155
-msgid "Unassigned"
-msgstr ""
-
-#: ckanext/issues/templates/issues/ticket_read_inner.html:145
-msgid "Assign"
-msgstr ""
-
-#: ckanext/issues/templates/issues/ticket_read_inner.html:160
-msgid "Created"
-msgstr ""
-
-#: ckanext/issues/templates/issues/ticket_read_inner.html:167
+#: ckanext/issues/templates/issues/ticket_read_inner.html:180
 msgid "Last activity"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:174
-msgid "Replies"
-msgstr ""
-
-#: ckanext/issues/templates/issues/ticket_read_inner.html:183
+#: ckanext/issues/templates/issues/ticket_read_inner.html:189
 msgid "Actions"
 msgstr ""
 
-#: ckanext/issues/templates/issues/ticket_read_inner.html:189
-msgid "Close this ticket?"
-msgstr ""
-
-#: ckanext/issues/templates/issues/ticket_read_inner.html:190
-msgid "Close ticket"
-msgstr ""
-
 #: ckanext/issues/templates/issues/ticket_read_inner.html:195
-msgid "Reopen this ticket?"
+msgid "The author will no longer be able to reply. You can reopen the ticket later."
 msgstr ""
 
 #: ckanext/issues/templates/issues/ticket_read_inner.html:196
+msgid "Close ticket?"
+msgstr ""
+
+#: ckanext/issues/templates/issues/ticket_read_inner.html:197
+#: ckanext/issues/templates/issues/ticket_read_inner.html:199
+msgid "Close ticket"
+msgstr ""
+
+#: ckanext/issues/templates/issues/ticket_read_inner.html:205
+msgid "The conversation will be open for replies again."
+msgstr ""
+
+#: ckanext/issues/templates/issues/ticket_read_inner.html:206
+msgid "Reopen ticket?"
+msgstr ""
+
+#: ckanext/issues/templates/issues/ticket_read_inner.html:207
+#: ckanext/issues/templates/issues/ticket_read_inner.html:209
 msgid "Reopen ticket"
-msgstr ""
-
-#: ckanext/issues/templates/issues/ticket_read_inner.html:203
-msgid "Are you sure you want to delete this ticket? This cannot be undone."
-msgstr ""
-
-#: ckanext/issues/templates/issues/ticket_read_inner.html:204
-msgid "Delete ticket"
 msgstr ""
 
 #: ckanext/issues/templates/issues/emails/new_message.txt:4
@@ -435,3 +577,30 @@ msgstr ""
 #: ckanext/issues/templates/issues/emails/ticket_updated.txt:16
 msgid "To view the full ticket, visit:"
 msgstr ""
+
+#: ckanext/issues/templates/issues/snippets/attachment_input.html:16
+#, python-brace-format
+msgid "Up to {n} file, {size} max"
+msgid_plural "Up to {n} files, {size} each"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ckanext/issues/templates/issues/snippets/attachment_input.html:18
+#, python-brace-format
+msgid "Up to {n} file"
+msgid_plural "Up to {n} files"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ckanext/issues/templates/issues/snippets/attachment_input.html:33
+msgid "Upload file"
+msgstr ""
+
+#: ckanext/issues/templates/issues/snippets/attachment_list_input.html:8
+msgid "Selected files"
+msgstr ""
+
+#: ckanext/issues/templates/issues/snippets/attachments.html:7
+msgid "Attachments"
+msgstr ""
+

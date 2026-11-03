@@ -14,6 +14,10 @@
 ────────────────────────────────────────
 
 {{ ticket.text }}
+{%- if ticket.attachments %}
+
+[{{ ungettext('+{n} attachment, open the ticket to see it', '+{n} attachments, open the ticket to see them', ticket.attachments | length).format(n=ticket.attachments | length) }}]
+{%- endif %}
 
 ────────────────────────────────────────
 

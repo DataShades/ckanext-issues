@@ -10,13 +10,14 @@ from ckan.logic import parse_params
 
 from ckanext.tables.shared import GenericTableView
 
+from ckanext.issues import attachments
 from ckanext.issues.model import TicketMessage
 from ckanext.issues.table import SUPPORT_TABS, UserTicketTable
 
 if TYPE_CHECKING:
     from ckanext.issues.types import DictizedMessage, DictizedTicket
 
-_TICKET_FORM_FIELDS = ("subject", "category", "text")
+_TICKET_FORM_FIELDS = ("subject", "category", "text", attachments.FIELD)
 
 issues = Blueprint(
     "issues",
@@ -41,6 +42,11 @@ def _sysadmin_before_request() -> None:
 def _authenticated_before_request() -> None:
     if not tk.current_user.is_authenticated:
         tk.abort(403, tk._("You must be logged in to access this page"))
+
+
+def _uploaded_files() -> list[Any]:
+    """Files sent with the form; empty file inputs are skipped."""
+    return [f for f in tk.request.files.getlist(attachments.FIELD) if f and f.filename]
 
 
 def _error_message(error: Exception) -> str:
@@ -82,9 +88,15 @@ class AddTicketView(MethodView):
         data_dict = parse_params(tk.request.form)
         data_dict["author_id"] = tk.g.userobj.id
 
+        files = _uploaded_files()
+        if files:
+            data_dict[attachments.FIELD] = files
+
         try:
             ticket: DictizedTicket = tk.get_action("issues_ticket_create")({"user": tk.g.user}, data_dict)
         except (tk.ObjectNotFound, tk.ValidationError) as e:
+            # Browsers can't refill a file input; the form asks to pick again.
+            data_dict.pop(attachments.FIELD, None)
             return self._render_form(data_dict, e)
 
         return tk.render(
@@ -124,14 +136,19 @@ class AddMessageView(MethodView):
     def post(self, ticket_id: str) -> Response | str:
         data_dict = parse_params(tk.request.form)
 
+        message_data: dict[str, Any] = {
+            "ticket_id": ticket_id,
+            "author_id": tk.current_user.id,
+            "content": data_dict.get("content", ""),
+        }
+        files = _uploaded_files()
+        if files:
+            message_data[attachments.FIELD] = files
+
         try:
             message: DictizedMessage = tk.get_action("issues_message_create")(
                 {"user": tk.g.user},
-                {
-                    "ticket_id": ticket_id,
-                    "author_id": tk.current_user.id,
-                    "content": data_dict.get("content", ""),
-                },
+                message_data,
             )
         except (tk.ObjectNotFound, tk.ValidationError, tk.NotAuthorized) as e:
             # Show the error inside the reply form instead of swapping it over

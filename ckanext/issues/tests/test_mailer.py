@@ -50,6 +50,10 @@ def _subjects(mail_server) -> list[str]:
     return [str(msg["Subject"]) for msg in _parsed(mail_server)]
 
 
+def _file(name: str) -> dict[str, object]:
+    return {"id": name, "name": name, "size": 10, "content_type": "image/png"}
+
+
 def _bodies(mail_server) -> list[str]:
     """Decoded text bodies (non-ASCII mails are sent base64-encoded)."""
     return [msg.get_payload(decode=True).decode(msg.get_content_charset() or "utf-8") for msg in _parsed(mail_server)]
@@ -104,6 +108,46 @@ class TestNotifications:
         messages = mail_server.get_smtp_messages()
         assert len(messages) == 1
         assert author["email"] in messages[0][2]
+
+    def test_reply_mentions_its_attachments(self, mail_server):
+        author = factories.User()
+        staff = factories.Sysadmin()
+        ticket = call_action("issues_ticket_create", author_id=author["id"], **TICKET)
+        message = {
+            "id": 1,
+            "ticket_id": ticket["id"],
+            "content": "see the screenshots",
+            "author": {"id": staff["id"], "name": staff["name"], "display_name": staff["name"]},
+            "created_at": ticket["created_at"],
+            "updated_at": None,
+            "attachments": [_file("a.png"), _file("b.png")],
+        }
+        mail_server.clear_smtp_messages()
+
+        mailer.send_new_message_email(ticket, message)
+
+        body = _bodies(mail_server)[0].replace("\r\n", "\n")
+        assert "see the screenshots\n\n[+2 attachments, open the ticket to see them]\n\n" in body
+
+    def test_new_ticket_mentions_its_attachment(self, mail_server):
+        factories.Sysadmin()
+        ticket = call_action("issues_ticket_create", author_id=factories.User()["id"], **TICKET)
+        mail_server.clear_smtp_messages()
+
+        mailer.send_new_ticket_emails({**ticket, "attachments": [_file("a.png")]})
+
+        assert "[+1 attachment, open the ticket to see it]" in _bodies(mail_server)[0]
+
+    def test_mail_without_attachments_has_no_note(self, mail_server):
+        factories.Sysadmin()
+        ticket = call_action("issues_ticket_create", author_id=factories.User()["id"], **TICKET)
+        mail_server.clear_smtp_messages()
+
+        mailer.send_new_ticket_emails(ticket)
+
+        body = _bodies(mail_server)[0].replace("\r\n", "\n")
+        assert "attachment" not in body
+        assert "please\n\n" in body
 
     @new_message
     def test_author_replying_to_own_ticket_is_not_emailed(self, mail_server):

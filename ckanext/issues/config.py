@@ -16,6 +16,24 @@ DEF_MAIL_QUEUE = "default"
 CONF_MAX_OPEN_TICKETS = "ckanext.issues.max_open_tickets_per_user"
 DEF_MAX_OPEN_TICKETS = 5
 
+CONF_ATTACHMENTS_STORAGE = "ckanext.issues.attachments.storage"
+CONF_ATTACHMENTS_MAX_FILES = "ckanext.issues.attachments.max_files"
+DEF_ATTACHMENTS_MAX_FILES = 5
+CONF_ATTACHMENTS_MAX_SIZE = "ckanext.issues.attachments.max_size"
+DEF_ATTACHMENTS_MAX_SIZE = 10 * 1024 * 1024
+CONF_ATTACHMENTS_ALLOWED_TYPES = "ckanext.issues.attachments.allowed_types"
+DEF_ATTACHMENTS_ALLOWED_TYPES = [
+    "image/png",
+    "image/jpeg",
+    "image/gif",
+    "image/webp",
+    "application/pdf",
+    "text/plain",
+    "text/csv",
+    "application/json",
+    "application/zip",
+]
+
 
 def get_ticket_categories() -> list[str]:
     """Return the configured ticket categories, one per line.
@@ -61,3 +79,35 @@ def get_notify_on_ticket_assign() -> bool:
 def get_mail_queue() -> str:
     """Background-job queue that notification mails are enqueued on."""
     return tk.config.get(CONF_MAIL_QUEUE) or DEF_MAIL_QUEUE
+
+
+def get_attachments_storage() -> str:
+    """Name of the ckanext-files storage attachments are written to.
+
+    Empty means the default storage of ckanext-files (or CKAN core on 2.12+).
+    """
+    return tk.config.get(CONF_ATTACHMENTS_STORAGE) or ""
+
+
+def get_attachments_max_files() -> int:
+    """How many files one ticket or reply may carry. ``0`` disables uploads."""
+    return tk.asint(tk.config.get(CONF_ATTACHMENTS_MAX_FILES, DEF_ATTACHMENTS_MAX_FILES))
+
+
+def get_attachments_max_size() -> int:
+    """Largest accepted file, in bytes. ``0`` means no limit."""
+    return tk.asint(tk.config.get(CONF_ATTACHMENTS_MAX_SIZE, DEF_ATTACHMENTS_MAX_SIZE))
+
+
+def get_attachments_allowed_types() -> list[str]:
+    """Accepted MIME types; ``type/*`` matches a whole family, empty allows any.
+
+    Matched against the type detected from the file content, not the one the
+    browser reports.
+    """
+    raw = tk.config.get(CONF_ATTACHMENTS_ALLOWED_TYPES)
+    if raw is None:
+        return list(DEF_ATTACHMENTS_ALLOWED_TYPES)
+
+    values = raw if isinstance(raw, (list, tuple)) else str(raw).split()
+    return [str(value).strip().lower() for value in values if str(value).strip()]

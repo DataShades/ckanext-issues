@@ -38,9 +38,9 @@
       margin-bottom: 0;
     }
 
-    // A closed ticket with no replies leaves the thread empty; drop it so
-    // it doesn't add a second grid gap.
-    #messages-container-outer:not(:has(.message-card, .thread-empty)) {
+    // A ticket with no replies leaves the thread empty; drop it so it
+    // doesn't add a second grid gap.
+    #messages-container-outer:not(:has(.message-card)) {
       display: none;
     }
 
@@ -156,22 +156,6 @@
   color:      var(--issues-cat-color);
 
   i { opacity: 0.75; }
-}
-
-
-// ── Empty state (no messages yet) ─────────────────────
-
-.thread-empty {
-  text-align: center;
-  padding: 2.5rem 1rem;
-  color: var(--issues-text-muted);
-
-  i {
-    font-size: 2rem;
-    opacity: 0.3;
-    display: block;
-    margin-bottom: 0.75rem;
-  }
 }
 
 

@@ -1,0 +1,38 @@
+{#
+    "Upload file" control: a visually hidden file input styled through its
+    label. The chosen files are listed in the element marked
+    data-issues-attach-list="<id>" (see attachment_list_input.html), which a
+    form can place wherever it fits. The issues-attachments module (on the
+    modal dialog and the ticket page wrapper) keeps that list and the input
+    in sync.
+
+    id - id of the file input; must be unique on the page
+
+    Renders nothing unless attachments are enabled.
+#}
+{% if h.issues_attachments_enabled() %}
+    {% set limits = h.issues_attachment_limits() %}
+    {% set accept = h.issues_attachment_accept() %}
+    {% if limits.max_size %}
+        {% set limit_text = ungettext('Up to {n} file, {size} max', 'Up to {n} files, {size} each', limits.max_files).format(n=limits.max_files, size=h.localised_filesize(limits.max_size)) %}
+    {% else %}
+        {% set limit_text = ungettext('Up to {n} file', 'Up to {n} files', limits.max_files).format(n=limits.max_files) %}
+    {% endif %}
+
+    <span class="issues-attach">
+        <input type="file"
+               id="{{ id }}"
+               name="attachments"
+               class="issues-attach-input"
+               multiple
+               {% if accept %}accept="{{ accept }}"{% endif %}
+               aria-describedby="{{ id }}-limits"
+               data-issues-attach-input
+               data-max-files="{{ limits.max_files }}"
+               data-max-size="{{ limits.max_size }}">
+        <label for="{{ id }}" class="btn btn-outline-primary issues-attach-btn" title="{{ limit_text }}">
+            <i class="fa fa-cloud-upload" aria-hidden="true"></i> {{ _('Upload file') }}
+        </label>
+        <span class="visually-hidden" id="{{ id }}-limits">{{ limit_text }}</span>
+    </span>
+{% endif %}

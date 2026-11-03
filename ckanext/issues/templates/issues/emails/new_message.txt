@@ -15,6 +15,10 @@
 {% trans author=message.author.display_name %}New reply from {{ author }}:{% endtrans %}
 
 {{ message.content }}
+{%- if message.attachments %}
+
+[{{ ungettext('+{n} attachment, open the ticket to see it', '+{n} attachments, open the ticket to see them', message.attachments | length).format(n=message.attachments | length) }}]
+{%- endif %}
 
 ────────────────────────────────────────
 

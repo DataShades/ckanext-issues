@@ -123,7 +123,7 @@ def test_reply_edit_and_delete_own_message(login_as, authors, tickets, snap: Sna
     page = login_as(authors["maria"])
     page.goto(f"/issues/ticket/{ticket['id']}")
 
-    expect(page.get_by_text("No replies yet. Be the first to respond.")).to_be_visible()
+    expect(page.locator("#messages-container .message-card")).to_have_count(0)
     snap(page, "no-replies")
 
     reply = page.locator("#reply-textarea")

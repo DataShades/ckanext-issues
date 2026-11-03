@@ -12,6 +12,7 @@
     {% if current_user.is_authenticated %}
         {% snippet 'issues/ticket_modal.html' %}
         {% asset 'issues/issues-js' %}
+        {% if h.issues_attachments_enabled() %}{% asset 'issues/issues-attachments-js' %}{% endif %}
     {% endif %}
     {{ super() }}
 {% endblock %}

@@ -23,9 +23,6 @@ It provides:
   (`ckan jobs worker`). Set `ckanext.issues.mail_queue` to send them from a
   dedicated queue (`ckan jobs worker <queue>`).
 
-TODO:
-* Add file uploads to messages.
-
 ## Requirements
 
 Compatibility with core CKAN versions:
@@ -62,6 +59,64 @@ background worker (`ckan jobs worker`, i.e. Redis) for email notifications.
 
 5. Restart CKAN.
 
+
+## Attachments (optional)
+
+Users can attach files to a new ticket and to replies when
+[ckanext-files](https://github.com/DataShades/ckanext-files) is installed and
+its `files` plugin is enabled. Without it, ckanext-issues works as before and
+the upload controls are hidden.
+
+1. Install the extra:
+
+     pip install -e '.[files]'
+
+2. Add `files` to `ckan.plugins`.
+
+3. Configure a storage for the files. On CKAN 2.12+ storages are part of core
+   (`ckan.files.storage.*`); on 2.10 and 2.11 they come from ckanext-files
+   (`ckanext.files.storage.*`) and need its migrations
+   (`ckan db upgrade -p files`). For example, on 2.10/2.11:
+
+     ckanext.files.storage.issues.type = files:fs
+     ckanext.files.storage.issues.path = /var/lib/ckan/issues
+     ckanext.files.storage.issues.initialize = true
+     ckanext.issues.attachments.storage = issues
+
+   The storage must be private: attachments are downloaded through
+   `/files/download/<id>`, which only lets in the ticket author and
+   sysadmins. A public storage, or one that isn't configured, turns uploads
+   off (the reason is logged).
+
+   With the development server (`ckan run`), keep the storage outside the
+   folder of your config file: the reloader watches that folder and restarts
+   when a `.zip` is written there, cutting the upload off.
+
+4. Limit the request size in your web server (e.g. nginx
+   `client_max_body_size`) or with Flask's `MAX_CONTENT_LENGTH`. The
+   attachment limits are checked after the request has been received, so
+   without this a user can still send very large requests.
+
+Each file belongs to what it was attached to (the ticket for the opening
+text, otherwise the reply), and is deleted together with it when the ticket
+or reply is deleted through the API.
+
+Purging a user deletes their tickets and replies (including replies by
+others on their tickets) at the database level, and their files are left
+behind. Remove such orphaned files with:
+
+    ckan issues clean-attachments [--dry-run]
+
+Run it after purging users, or on a schedule, e.g. a nightly cron job:
+
+    0 3 * * * ckan -c /etc/ckan/ckan.ini issues clean-attachments
+
+Through the action API (`issues_ticket_create`, `issues_message_create`),
+files go in the `attachments` field of a multipart request. CKAN's API keeps
+one file per field name, so API calls can attach one file each.
+
+The limits (`ckanext.issues.attachments.max_files`, `max_size`,
+`allowed_types`) are listed in [`config_declaration.yaml`](ckanext/issues/config_declaration.yaml).
 
 ## Config settings
 

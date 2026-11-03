@@ -51,8 +51,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install requirements
-        # ckanext-tables is pulled in as a project dependency.
-        run: pip install -e '.[test]'
+        # ckanext-tables is pulled in as a project dependency; ckanext-files
+        # (optional) for the attachment tests.
+        run: pip install -e '.[test,files]'
 
       - name: Setup extension
         run: |

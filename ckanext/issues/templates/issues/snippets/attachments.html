@@ -1,0 +1,26 @@
+{#
+    Files attached to a ticket's opening text or a reply.
+
+    attachments - list of dictized attachments (id, name, size, content_type)
+#}
+{% if attachments %}
+    <ul class="msg-attachments" aria-label="{{ _('Attachments') }}">
+        {% for file in attachments %}
+            {% set url = h.issues_attachment_url(file.id) %}
+            <li>
+                <a class="msg-attachment" href="{{ url }}" download="{{ file.name }}"
+                   title="{{ file.name }} ({{ h.localised_filesize(file.size) }})">
+                    {% if h.issues_attachment_is_image(file.content_type) %}
+                        <img class="msg-attachment-thumb" src="{{ url }}" alt="" loading="lazy">
+                    {% else %}
+                        <span class="msg-attachment-thumb msg-attachment-icon" aria-hidden="true">
+                            <i class="fa fa-file-o"></i>
+                        </span>
+                    {% endif %}
+                    <span class="msg-attachment-name">{{ file.name }}</span>
+                    <span class="msg-attachment-size">{{ h.localised_filesize(file.size) }}</span>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

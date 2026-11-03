@@ -1,0 +1,196 @@
+// ==========================================================
+//  Attachments (need the optional ckanext-files plugin)
+//  Covers: "Upload file" control + picked-file chips
+//          (attachment_input.html, issues-attachments.js),
+//          files listed on a message (attachments.html).
+// ==========================================================
+
+
+// ── Upload control ─────────────────────────────────────
+//
+//  The file input stays in the tab order but is hidden; its label is the
+//  visible button and shows the input's keyboard focus.
+
+.issues-attach {
+  position: relative;
+  display: inline-flex;
+}
+
+.issues-attach-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.issues-attach-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  font-weight: 600;
+  white-space: nowrap;
+
+  // Labels get a trailing colon from CKAN core.
+  &::after {
+    content: none;
+  }
+
+  .issues-attach-input:focus-visible + & {
+    outline: 2px solid var(--bs-focus-ring-color, rgba(13, 110, 253, 0.25));
+    outline-offset: 2px;
+  }
+}
+
+// Picked files, before sending.
+.issues-attach-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.issues-attach-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  padding: 0.25rem 0.3rem 0.25rem 0.7rem;
+  border: 1px solid var(--issues-border);
+  border-radius: 8px;
+  background: var(--issues-surface);
+  color: var(--issues-text);
+  font-size: 0.82rem;
+
+  &.is-invalid {
+    border-color: var(--issues-act-danger);
+
+    .issues-attach-size {
+      color: var(--issues-act-danger);
+    }
+  }
+}
+
+.issues-attach-name {
+  min-width: 0;
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.issues-attach-size {
+  flex-shrink: 0;
+  color: var(--issues-text-muted);
+  font-size: 0.75rem;
+}
+
+.issues-attach-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--issues-text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--issues-border);
+    color: var(--issues-act-danger);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--bs-focus-ring-color, rgba(13, 110, 253, 0.25));
+    outline-offset: 1px;
+  }
+}
+
+.issues-attach-notice {
+  flex-basis: 100%;
+  color: var(--issues-text-muted);
+  font-size: 0.78rem;
+}
+
+// Attachment errors come one per file, joined with newlines.
+.issues-attach-field .error-block > div,
+.issues-form-error {
+  white-space: pre-line;
+}
+
+
+// ── Files on a message ─────────────────────────────────
+
+.msg-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.msg-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 100%;
+  padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+  border: 1px solid var(--issues-border);
+  border-radius: 8px;
+  background: var(--issues-surface);
+  color: var(--issues-text);
+  font-size: 0.85rem;
+  line-height: 1.3;
+  text-decoration: none;
+  transition: background-color 0.15s, border-color 0.15s;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--issues-surface-alt);
+    color: var(--issues-text);
+  }
+}
+
+.msg-attachment-thumb {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 2.25rem;
+  border-radius: 4px;
+  object-fit: cover;
+  background: var(--issues-surface-alt);
+}
+
+.msg-attachment-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--issues-text-muted);
+  font-size: 1rem;
+}
+
+.msg-attachment-name {
+  min-width: 0;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.msg-attachment-size {
+  flex-shrink: 0;
+  color: var(--issues-text-muted);
+  font-size: 0.75rem;
+}

@@ -4,6 +4,7 @@ from typing import Any
 
 import ckan.plugins.toolkit as tk
 
+from ckanext.issues import attachments
 from ckanext.issues import config as issues_config
 from ckanext.issues.model import Ticket, get_active_sysadmins
 from ckanext.issues.table import SUPPORT_TABS, SupportScope, support_scope_counts
@@ -44,3 +45,29 @@ def issues_support_tabs() -> list[dict[str, Any]]:
         }
         for tab in SUPPORT_TABS
     ]
+
+
+def issues_attachments_enabled() -> bool:
+    """Whether the upload controls should be shown."""
+    return attachments.uploads_allowed()
+
+
+def issues_attachment_url(file_id: str) -> str:
+    """Download link of an attachment; access is checked by ckanext-files."""
+    return tk.h.url_for("files.dispatch_download", file_id=file_id)
+
+
+def issues_attachment_accept() -> str:
+    """Value for the file input's ``accept`` attribute (a hint, not a check)."""
+    return ",".join(issues_config.get_attachments_allowed_types())
+
+
+def issues_attachment_limits() -> dict[str, Any]:
+    return {
+        "max_files": issues_config.get_attachments_max_files(),
+        "max_size": issues_config.get_attachments_max_size(),
+    }
+
+
+def issues_attachment_is_image(content_type: str | None) -> bool:
+    return bool(content_type) and content_type.lower().startswith("image/")

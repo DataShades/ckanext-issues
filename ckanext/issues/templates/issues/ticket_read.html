@@ -23,6 +23,7 @@
 {% block scripts %}
     {{ super() }}
     {% asset 'issues/issues-thread-js' %}
+    {% if h.issues_attachments_enabled() %}{% asset 'issues/issues-attachments-js' %}{% endif %}
 {% endblock %}
 
 {% block primary %}

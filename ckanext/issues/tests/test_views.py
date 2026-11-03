@@ -99,29 +99,6 @@ class TestTicketReadView:
 
         assert resp.status_code == 404
 
-    def test_open_empty_thread_shows_the_no_replies_prompt(self, app, ticket):
-        resp = app.get(
-            tk.url_for("issues.ticket_read", ticket_id=ticket["id"]),
-            headers=_auth(ticket["author"]["id"]),
-        )
-
-        assert "No replies yet" in resp.body
-
-    def test_closed_empty_thread_hides_the_no_replies_prompt(self, app, ticket, sysadmin):
-        call_action(
-            "issues_ticket_update",
-            context={"user": sysadmin["name"]},
-            id=ticket["id"],
-            status="closed",
-        )
-
-        resp = app.get(
-            tk.url_for("issues.ticket_read", ticket_id=ticket["id"]),
-            headers=_auth(ticket["author"]["id"]),
-        )
-
-        assert "No replies yet" not in resp.body
-
 
 class TestAddMessageView:
     def test_author_can_reply(self, app, ticket):
@@ -249,8 +226,8 @@ class TestMessageMutation:
 
         assert resp.status_code == 200
         assert _messages(ticket["id"]) == []
-        # the re-rendered thread drops back to the empty state
-        assert "No replies yet" in resp.body
+        # the re-rendered thread is empty
+        assert "message-card" not in resp.body
 
     def test_deleting_one_of_several_messages_keeps_the_rest(self, app, ticket):
         _add_message(ticket["id"], ticket["author"]["id"], content="first")
@@ -263,7 +240,7 @@ class TestMessageMutation:
 
         assert [m["content"] for m in _messages(ticket["id"])] == ["first"]
         assert "first" in resp.body
-        assert "No replies yet" not in resp.body
+        assert resp.body.count('class="message-card') == 1
 
     def test_unrelated_user_cannot_delete_message(self, app, ticket, user):
         message = _add_message(ticket["id"], ticket["author"]["id"])
@@ -289,7 +266,7 @@ class TestMessageMutation:
 
         assert resp.status_code == 200
         assert "private reply" not in resp.body
-        assert "No replies yet" in resp.body
+        assert "message-card" not in resp.body
 
 
 class TestTicketDeleteApi:

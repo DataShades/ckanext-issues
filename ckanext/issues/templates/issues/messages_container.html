@@ -7,13 +7,6 @@
     <div id="messages-container">
         {% for message in ticket.messages %}
             {% snippet "issues/message_item.html", message=message, ticket=ticket, is_new=(new_message_id and message.id == new_message_id) %}
-        {% else %}
-            {% if ticket.status == 'opened' %}
-                <div class="thread-empty">
-                    <i class="fa fa-comments-o" aria-hidden="true"></i>
-                    <p class="mb-0">{{ _('No replies yet. Be the first to respond.') }}</p>
-                </div>
-            {% endif %}
         {% endfor %}
     </div>
 </div>

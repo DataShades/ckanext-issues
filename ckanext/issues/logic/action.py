@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import sqlalchemy as sa
 
@@ -10,10 +11,13 @@ from ckan.logic import validate
 from ckan.plugins import toolkit as tk
 
 import ckanext.issues.model as issues_model
-from ckanext.issues import config
+from ckanext.issues import attachments, config
 from ckanext.issues import signals as issues_signals
 from ckanext.issues.logic import schema
 from ckanext.issues.types import DictizedMessage, DictizedTicket, TicketData
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 log = logging.getLogger(__name__)
 
@@ -41,6 +45,85 @@ def _get_message(message_id: Any) -> issues_model.TicketMessage:
         msg = tk._("Message not found")
         raise tk.ObjectNotFound(msg)
     return message
+
+
+def _dictize_ticket(ticket: issues_model.Ticket, context: types.Context) -> DictizedTicket:
+    """Dictize a ticket with the files attached to it and to its messages."""
+    dictized = ticket.dictize(context)
+
+    files = attachments.list_for(attachments.OWNER_TICKET, [ticket.id])
+    dictized["attachments"] = files.get(str(ticket.id), [])
+
+    by_message = attachments.list_for(attachments.OWNER_MESSAGE, [m["id"] for m in dictized["messages"]])
+    for message in dictized["messages"]:
+        message["attachments"] = by_message.get(str(message["id"]), [])
+
+    return dictized
+
+
+def _dictize_message(message: issues_model.TicketMessage, context: types.Context) -> DictizedMessage:
+    dictized = message.dictize(context)
+    files = attachments.list_for(attachments.OWNER_MESSAGE, [message.id])
+    dictized["attachments"] = files.get(str(message.id), [])
+    return dictized
+
+
+def _message_file_ids(ticket: issues_model.Ticket) -> list[str]:
+    return attachments.file_ids_for(attachments.OWNER_MESSAGE, [m.id for m in ticket.messages])
+
+
+def _attachment_error(err: Exception) -> tk.ValidationError:
+    message = tk._("The files could not be saved. Please try again.")
+    if isinstance(err, tk.ValidationError):
+        message = "; ".join(str(m) for m in err.error_summary.values()) or message
+    return tk.ValidationError({attachments.FIELD: [message]})
+
+
+def _store_uploads(uploads: list[Any], user: str) -> list[str]:
+    """Store uploads before their ticket or message exists (see attachments.store)."""
+    if not uploads:
+        return []
+
+    try:
+        return attachments.store(uploads, user)
+    except Exception as err:
+        raise _attachment_error(err) from err
+
+
+def _assign_or_undo(
+    owner: issues_model.Ticket | issues_model.TicketMessage, file_ids: list[str], user: str
+) -> None:
+    """Give stored files to a just-committed ticket or message.
+
+    If that fails, the owner and the files are deleted again so the user can
+    resubmit, and the failure is reported on ``attachments``.
+    """
+    if not file_ids:
+        return
+
+    owner_type = attachments.OWNER_TICKET if isinstance(owner, issues_model.Ticket) else attachments.OWNER_MESSAGE
+
+    try:
+        attachments.assign(owner_type, owner.id, file_ids, user)
+    except Exception as err:
+        log.exception("[%s:%s] could not attach files", owner_type, owner.id)
+        model.Session.rollback()
+        owner.delete()
+        model.Session.commit()
+        attachments.delete_files(file_ids)
+        raise _attachment_error(err) from err
+
+
+@contextlib.contextmanager
+def _discard_on_error(file_ids: list[str]) -> Iterator[None]:
+    """Delete stored files if creating their ticket or message fails."""
+    try:
+        yield
+    except Exception:
+        if file_ids:
+            model.Session.rollback()
+            attachments.delete_files(file_ids)
+        raise
 
 
 def _enforce_open_ticket_limit(context: types.Context, author_id: str) -> None:
@@ -80,14 +163,24 @@ def _enforce_open_ticket_limit(context: types.Context, author_id: str) -> None:
 @validate(schema.ticket_create)
 def issues_ticket_create(context: types.Context, data_dict: types.DataDict) -> DictizedTicket:
     tk.check_access("issues_ticket_create", context, data_dict)
-    _enforce_open_ticket_limit(context, data_dict["author_id"])
 
-    ticket = issues_model.Ticket.add(TicketData(**data_dict))
-    model.Session.commit()
+    uploads = data_dict.pop(attachments.FIELD, [])
+    user = context.get("user") or data_dict["author_id"]
+
+    # Store files first: storing commits, which would release the row lock
+    # taken by the open-ticket limit check.
+    file_ids = _store_uploads(uploads, user)
+
+    with _discard_on_error(file_ids):
+        _enforce_open_ticket_limit(context, data_dict["author_id"])
+        ticket = issues_model.Ticket.add(TicketData(**data_dict))
+        model.Session.commit()
+
+    _assign_or_undo(ticket, file_ids, user)
 
     log.info("[id:%s] the ticket has been submitted", ticket.id)
 
-    dictized = ticket.dictize(context)
+    dictized = _dictize_ticket(ticket, context)
     issues_signals.ticket_created.send(ticket=dictized)
 
     return dictized
@@ -100,7 +193,7 @@ def issues_ticket_show(context: types.Context, data_dict: types.DataDict) -> Dic
 
     ticket = _get_ticket(data_dict.get("id"))
 
-    return ticket.dictize(context)
+    return _dictize_ticket(ticket, context)
 
 
 @validate(schema.ticket_delete)
@@ -108,10 +201,15 @@ def issues_ticket_delete(context: types.Context, data_dict: types.DataDict) -> b
     tk.check_access("issues_ticket_delete", context, data_dict)
 
     ticket = _get_ticket(data_dict.get("id"))
-    dictized = ticket.dictize(context)
+    dictized = _dictize_ticket(ticket, context)
+    file_ids = [f["id"] for f in dictized.get("attachments", [])] + _message_file_ids(ticket)
     ticket.delete()
 
     model.Session.commit()
+
+    # After the commit: a file that fails to go is only an orphan, while
+    # deleting files first could leave a ticket pointing at missing ones.
+    attachments.delete_files(file_ids)
 
     log.info("[id:%s] ticket deleted", dictized["id"])
 
@@ -133,7 +231,7 @@ def issues_ticket_update(context: types.Context, data_dict: types.DataDict) -> D
     }
     if not changes:
         # e.g. bulk-closing an already closed ticket: no write, no notification
-        return ticket.dictize(context)
+        return _dictize_ticket(ticket, context)
 
     for key, value in changes.items():
         setattr(ticket, key, value)
@@ -142,7 +240,7 @@ def issues_ticket_update(context: types.Context, data_dict: types.DataDict) -> D
 
     log.info("[id:%s] ticket updated, status: %s", ticket.id, ticket.status)
 
-    dictized = ticket.dictize(context)
+    dictized = _dictize_ticket(ticket, context)
     issues_signals.ticket_updated.send(ticket=dictized)
 
     return dictized
@@ -156,7 +254,7 @@ def issues_ticket_assign(context: types.Context, data_dict: types.DataDict) -> D
 
     assignee_id = data_dict.get("assignee_id")
     if ticket.assignee_id == assignee_id:
-        return ticket.dictize(context)
+        return _dictize_ticket(ticket, context)
 
     # Set the relationship, not just the column: the session doesn't expire
     # on commit, so an already-loaded ``ticket.assignee`` would stay stale.
@@ -166,7 +264,7 @@ def issues_ticket_assign(context: types.Context, data_dict: types.DataDict) -> D
 
     log.info("[id:%s] ticket assigned to: %s", ticket.id, ticket.assignee_id)
 
-    dictized = ticket.dictize(context)
+    dictized = _dictize_ticket(ticket, context)
     issues_signals.ticket_updated.send(ticket=dictized)
     if dictized["assignee"]:
         issues_signals.ticket_assigned.send(ticket=dictized)
@@ -183,13 +281,19 @@ def issues_message_create(context: types.Context, data_dict: types.DataDict) -> 
     if ticket.status != issues_model.Ticket.Status.opened:
         raise tk.ValidationError({"ticket_id": [tk._("Cannot add messages to closed tickets")]})
 
-    message = issues_model.TicketMessage.add(
-        ticket,
-        author_id=data_dict["author_id"],
-        content=data_dict["content"],
-    )
-    ticket.touch()
-    model.Session.commit()
+    user = context.get("user") or data_dict["author_id"]
+    file_ids = _store_uploads(data_dict.get(attachments.FIELD, []), user)
+
+    with _discard_on_error(file_ids):
+        message = issues_model.TicketMessage.add(
+            ticket,
+            author_id=data_dict["author_id"],
+            content=data_dict["content"],
+        )
+        ticket.touch()
+        model.Session.commit()
+
+    _assign_or_undo(message, file_ids, user)
 
     log.info(
         "[ticket_id:%s] new message from %s",
@@ -197,10 +301,10 @@ def issues_message_create(context: types.Context, data_dict: types.DataDict) -> 
         data_dict["author_id"],
     )
 
-    dictized_message = message.dictize(context)
+    dictized_message = _dictize_message(message, context)
 
     issues_signals.message_created.send(
-        ticket=ticket.dictize(context),
+        ticket=_dictize_ticket(ticket, context),
         message=dictized_message,
     )
 
@@ -212,8 +316,11 @@ def issues_message_delete(context: types.Context, data_dict: types.DataDict) -> 
     tk.check_access("issues_message_delete", context, data_dict)
 
     message = _get_message(data_dict.get("id"))
+    file_ids = attachments.file_ids_for(attachments.OWNER_MESSAGE, [message.id])
     message.delete()
     model.Session.commit()
+
+    attachments.delete_files(file_ids)
 
     log.info("[message_id:%s] message deleted", data_dict["id"])
 
@@ -230,4 +337,4 @@ def issues_message_update(context: types.Context, data_dict: types.DataDict) -> 
 
     log.info("[message_id:%s] message updated", data_dict["id"])
 
-    return message.dictize(context)
+    return _dictize_message(message, context)
