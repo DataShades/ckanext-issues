@@ -90,9 +90,7 @@ def _store_uploads(uploads: list[Any], user: str) -> list[str]:
         raise _attachment_error(err) from err
 
 
-def _assign_or_undo(
-    owner: issues_model.Ticket | issues_model.TicketMessage, file_ids: list[str], user: str
-) -> None:
+def _assign_or_undo(owner: issues_model.Ticket | issues_model.TicketMessage, file_ids: list[str], user: str) -> None:
     """Give stored files to a just-committed ticket or message.
 
     If that fails, the owner and the files are deleted again so the user can

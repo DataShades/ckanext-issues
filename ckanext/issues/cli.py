@@ -14,7 +14,7 @@ def issues() -> None:
 
 @issues.command("clean-attachments")
 @click.option("--dry-run", is_flag=True, help="Only report the orphaned attachments.")
-def clean_attachments(dry_run: bool) -> None:
+def clean_attachments(*, dry_run: bool) -> None:
     """Delete attachments whose ticket or reply no longer exists."""
     if not attachments.enabled():
         return

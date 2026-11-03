@@ -80,7 +80,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"ckanext/issues/tests*" = ["S", "PL", "ANN", "ARG"]
+"ckanext/issues/tests*" = ["S", "PL", "ANN", "ARG", "FBT003"]  # FBT003: ckan_config marks take positional values
 "demo/*" = ["T201", "S", "INP001", "PLC0415", "FBT001"]  # FBT001: ckan-demo calls setup(portal, reset)
 "ckanext/issues/signals.py" = ["ERA001", "ARG001"]
 "ckanext/issues/mailer.py" = ["ARG001"]

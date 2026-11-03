@@ -214,7 +214,8 @@ class TestLimits:
             return stored
 
         def broken(*args: Any, **kwargs: Any):
-            raise RuntimeError("transfer failed")
+            msg = "transfer failed"
+            raise RuntimeError(msg)
 
         monkeypatch.setattr(attachments, "store", spy)
         monkeypatch.setattr(attachments, "assign", broken)
@@ -391,7 +392,7 @@ class TestOrphans:
         assert attachments.orphaned_file_ids() == []
 
     def test_cli_dry_run_reports_without_deleting(self, user, cli):
-        from ckanext.issues.cli import issues  # noqa: PLC0415
+        from ckanext.issues.cli import issues
 
         ticket = _create_ticket(user["id"], attachments=[png()])
         file_id = ticket["attachments"][0]["id"]
